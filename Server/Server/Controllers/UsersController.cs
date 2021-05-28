@@ -17,14 +17,24 @@ namespace Server.Controllers
 
         [HttpGet("{id:guid}", Name = nameof(GetUserByIdAsync))]
         [Produces("application/json")]
-        public async Task<IActionResult> GetUserByIdAsync([FromRoute] Guid id) =>
-            Ok(await userRepository.FindByIdAsync(id));
+        public async Task<IActionResult> GetUserByIdAsync([FromRoute] Guid id)
+        {
+            var user = await userRepository.FindByIdAsync(id);
+            if (user is null)
+                return NotFound();
+            
+            return Ok(user);
+        }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUserAsync([FromBody] UserEntity userEntity)
+        [Produces("application/json")]
+        public async Task<IActionResult> CreateUserAsync([FromBody] UserDto userEntity)
         {
             if (userEntity is null)
-                return BadRequest("User body should not be null or empty!");
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(ModelState);
 
             if (await userRepository.FindByLoginAsync(userEntity.Login) != null)
                 return Conflict("User with this username already exists!");
