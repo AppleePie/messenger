@@ -5,7 +5,7 @@ namespace Server.DatabaseWorkers
 {
     public sealed class UserContext : DbContext
     {
-        public DbSet<UserEntity> Users { get; set; }
+        public DbSet<UserDto> Users { get; set; }
         private readonly string collectionName;
         
         public UserContext(string collectionName)

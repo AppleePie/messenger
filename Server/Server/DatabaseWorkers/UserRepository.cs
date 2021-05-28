@@ -11,18 +11,18 @@ namespace Server.DatabaseWorkers
         private const string CollectionName = "users";
         public UserRepository() => database = new UserContext(CollectionName);
 
-        public async Task<UserEntity> FindByIdAsync(Guid userId)
+        public async Task<UserDto> FindByIdAsync(Guid userId)
         {
             var result = await database.Users.FindAsync(userId);
             await database.SaveChangesAsync();
             return result;
         }
 
-        public async Task<Guid> InsertAsync(UserEntity userEntity)
+        public async Task<Guid> InsertAsync(UserDto userDto)
         {
-            await database.AddAsync(userEntity);
+            await database.AddAsync(userDto);
             await database.SaveChangesAsync();
-            return userEntity.Id;
+            return userDto.Id;
         }
 
         public async Task ChangeAvatarAsync(Guid userId, string filePath)
@@ -33,7 +33,7 @@ namespace Server.DatabaseWorkers
             await database.SaveChangesAsync();
         }
 
-        public async Task<UserEntity> FindByLoginAsync(string login)
+        public async Task<UserDto> FindByLoginAsync(string login)
         {
             var result = await database.Users.FirstOrDefaultAsync(user => user.Login == login);
             await database.SaveChangesAsync();
