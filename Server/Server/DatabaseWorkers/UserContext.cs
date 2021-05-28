@@ -5,11 +5,16 @@ namespace Server.DatabaseWorkers
 {
     public sealed class UserContext : DbContext
     {
-        public DbSet<User> Users { get; set; }
+        public DbSet<UserEntity> Users { get; set; }
+        private readonly string collectionName;
         
-        // public UserContext() => Database.EnsureCreated();
+        public UserContext(string collectionName)
+        {
+            this.collectionName = collectionName;
+            Database.EnsureCreated();
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-            => options.UseSqlite(@"Filename=users.db");
+            => options.UseSqlite($@"Data Source={collectionName}.db");
     }
 }
