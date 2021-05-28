@@ -5,37 +5,50 @@ using Server.Models;
 
 namespace Server.DatabaseWorkers
 {
-    public static class UserRepository
+    public class UserRepository : IUserRepository
     {
-        private static readonly UserContext Database = new();
+        private readonly UserContext database;
+        private const string CollectionName = "users";
+        public UserRepository() => database = new UserContext(CollectionName);
 
-        public static async Task<User> FindByIdAsync(Guid userId)
+        public async Task<UserEntity> FindByIdAsync(Guid userId)
         {
-            var result = await Database.Users.FindAsync(userId);
-            await Database.SaveChangesAsync();
+            var result = await database.Users.FindAsync(userId);
+            await database.SaveChangesAsync();
             return result;
         }
 
-        public static async Task<Guid> InsertAsync(User user)
+        public async Task<Guid> InsertAsync(UserEntity userEntity)
         {
-            await Database.AddAsync(user);
-            await Database.SaveChangesAsync();
-            return user.Id;
+            await database.AddAsync(userEntity);
+            await database.SaveChangesAsync();
+            return userEntity.Id;
         }
 
-        public static async Task ChangeUserAvatarAsync(Guid userId, string filePath)
+        public async Task ChangeAvatarAsync(Guid userId, string filePath)
         {
             var user = await FindByIdAsync(userId);
             user.AvatarFilePath = filePath;
-            Database.Update(user);
-            await Database.SaveChangesAsync();
+            database.Update(user);
+            await database.SaveChangesAsync();
         }
 
-        public static async Task<User> FindByNameAsync(string userName)
+        public async Task<UserEntity> FindByLoginAsync(string login)
         {
-            var result = await Database.Users.FirstOrDefaultAsync(user => user.Name == userName);
-            await Database.SaveChangesAsync();
+            var result = await database.Users.FirstOrDefaultAsync(user => user.Login == login);
+            await database.SaveChangesAsync();
             return result;
+        }
+
+        public async Task<bool> DeleteAsync(Guid userId)
+        {
+            var user = await FindByIdAsync(userId);
+            if (user is null)
+                return false;
+            database.Users.Remove(user);
+            await database.SaveChangesAsync();
+            user = await FindByIdAsync(userId);
+            return true;
         }
     }
 }
