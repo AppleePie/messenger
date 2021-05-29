@@ -63,7 +63,10 @@ namespace Server.Controllers
         }
         
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteUserById([FromRoute] Guid id) =>
-            Ok(await userRepository.DeleteAsync(id));
+        public async Task<IActionResult> DeleteUserById([FromRoute] Guid id)
+        {
+            await userRepository.DeleteAsync(id);
+            return NoContent();
+        }
     }
 }
