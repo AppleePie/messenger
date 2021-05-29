@@ -9,7 +9,7 @@ namespace Server.DatabaseWorkers
         public Task<Guid> InsertAsync(UserDto user);
         public Task<UserDto> FindByIdAsync(Guid userId);
         public Task<UserDto> FindByLoginAsync(string login);
-        public Task ChangeAvatarAsync(Guid userId, string filename);
+        public Task ChangeAvatarAsync(Guid userId);
         public Task<bool> DeleteAsync(Guid userId);
     }
 }

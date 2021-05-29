@@ -25,10 +25,10 @@ namespace Server.DatabaseWorkers
             return userDto.Id;
         }
 
-        public async Task ChangeAvatarAsync(Guid userId, string filePath)
+        public async Task ChangeAvatarAsync(Guid userId)
         {
             var user = await FindByIdAsync(userId);
-            user.AvatarFilePath = filePath;
+            user.AvatarFilePath = userId.ToString();
             database.Update(user);
             await database.SaveChangesAsync();
         }
@@ -47,7 +47,6 @@ namespace Server.DatabaseWorkers
                 return false;
             database.Users.Remove(user);
             await database.SaveChangesAsync();
-            user = await FindByIdAsync(userId);
             return true;
         }
     }
