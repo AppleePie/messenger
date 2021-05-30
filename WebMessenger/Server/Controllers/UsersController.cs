@@ -29,6 +29,11 @@ namespace Server.Controllers
             uploadDirectory = uploadDirectoryName;
         }
 
+        [HttpGet]
+        [Produces("application/json")]
+        public IActionResult GetUsers() =>
+            Ok(repository.GetUsers().Select(u => mapper.Map<UserToSendDto>(u)).ToList());
+
         [HttpGet("{id:guid}", Name = nameof(GetUserByIdAsync))]
         [Produces("application/json")]
         public async Task<IActionResult> GetUserByIdAsync([FromRoute] Guid id)
@@ -70,7 +75,8 @@ namespace Server.Controllers
         [HttpGet("{userId:guid}/avatar")]
         public async Task<IActionResult> GetUserAvatarAsync([FromRoute] Guid userId)
         {
-            await using var fileStream = new FileStream(Path.Combine(uploadDirectory, userId.ToString()), FileMode.Open);
+            await using var fileStream =
+                new FileStream(Path.Combine(uploadDirectory, userId.ToString()), FileMode.Open);
             var buffer = new byte[fileStream.Length];
             await fileStream.ReadAsync(buffer);
             return Ok($"data:image/*;base64,{Convert.ToBase64String(buffer)}");

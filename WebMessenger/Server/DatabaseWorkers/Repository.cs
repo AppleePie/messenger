@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,8 @@ namespace Server.DatabaseWorkers
 
             database.SaveChanges();
         }
+
+        public IEnumerable<User> GetUsers() => database.Users;
 
         public async Task<TEntity> FindByIdAsync<TEntity>(Guid id) where TEntity : class
         {
