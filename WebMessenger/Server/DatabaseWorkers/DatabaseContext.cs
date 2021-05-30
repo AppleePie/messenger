@@ -17,11 +17,6 @@ namespace Server.DatabaseWorkers
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // modelBuilder.Entity<User>()
-            //     .HasMany(u => u.Chats)
-            //     .WithMany(c => c.Users)
-            //     .UsingEntity(j => j.ToTable("ChatsUsers"));
-
             modelBuilder.Entity<UserToChat>()
                 .HasOne(x => x.User)
                 .WithMany(x => x.UserToChats)

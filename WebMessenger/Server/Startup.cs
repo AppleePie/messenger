@@ -39,6 +39,15 @@ namespace Server
             services.AddAutoMapper(cfg =>
                 {
                     cfg.CreateMap<UserToCreateDto, User>();
+                    cfg.CreateMap<User, UserToSendDto>().ForMember(u => u.Chats,
+                        options =>
+                            options.MapFrom(user => user.UserToChats.Select(c => new ChatToSendDto
+                                {
+                                    Id = c.ChatId,
+                                    Interlocutor = c.Chat.UserToChats.First(u => u.UserId != user.Id).UserId
+                                }).ToList()
+                            )
+                    );
                 },
                 Array.Empty<System.Reflection.Assembly>());
         }

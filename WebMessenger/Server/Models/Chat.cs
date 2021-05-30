@@ -9,6 +9,5 @@ namespace Server.Models
     {
         public Guid Id { get; set; }
         public List<UserToChat> UserToChats { get; set; } = new();
-        public string RelationsWithUsers { get; set; }
     }
 }

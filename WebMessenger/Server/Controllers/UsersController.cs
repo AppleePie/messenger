@@ -36,16 +36,7 @@ namespace Server.Controllers
             var user = await repository.FindByIdAsync<User>(id);
             if (user is null)
                 return NotFound();
-            var userToSend = new UserToSendDto
-            {
-                Id = user.Id,
-                Login = user.Login,
-                Chats = user.UserToChats.Select(c => new ChatToSendDto()
-                {
-                    Id = c.ChatId,
-                    Interlocutor = c.Chat.UserToChats.First(u => u.UserId != user.Id).UserId
-                }).ToList()
-            };
+            var userToSend = mapper.Map<UserToSendDto>(user);
 
             return Ok(userToSend);
         }
@@ -95,7 +86,7 @@ namespace Server.Controllers
             var path = Path.Combine(uploadDirectory, id.ToString());
             await using var fileStream = new FileStream(path, FileMode.Create);
             await uploadedFile.CopyToAsync(fileStream);
-            
+
             return NoContent();
         }
 
@@ -107,14 +98,14 @@ namespace Server.Controllers
             var initiator = await repository.FindByIdAsync<User>(newChat.InitiatorId);
             var interlocutor = await repository.FindByLoginAsync(newChat.InterlocutorName);
             var chat = new Chat();
-            var chat1 = new UserToChat { User = initiator, Chat = chat};
+            var chat1 = new UserToChat {User = initiator, Chat = chat};
             var chat2 = new UserToChat {User = interlocutor, Chat = chat};
             await repository.InsertAsync(chat1);
             await repository.InsertAsync(chat2);
-            
+
             initiator.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
             interlocutor.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
-            
+
             await repository.UpdateAsync(initiator);
             await repository.UpdateAsync(interlocutor);
 
