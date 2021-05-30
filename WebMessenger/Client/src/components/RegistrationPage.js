@@ -19,6 +19,7 @@ function RegistrationPage(props) {
     const [needMovePassword, setNeedMovePassword] = useState(true);
     const [needMoveUser, setNeedMoveUser] = useState(true);
     const [preview, setPreview] = useState(defaultImage);
+    const [file, setFile] = useState();
     const [userObj, setUserObj] = useState(new Object({login: '', password: ''}));
     const [loginExceptionMessage, setLoginExceptionMessage] = useState(defaultLoginExceptionMessage);
     const [nameInputClass, setNameInputClass] = useState(defaultInputNameClass);
@@ -40,6 +41,7 @@ function RegistrationPage(props) {
         if (event.target.files[0]['type'].split('/')[0] === 'image') {
             const reader = new FileReader();
             const file = event.target.files[0];
+            setFile(file);
             reader.onload = () => {
                 setPreview(reader.result);
             }
@@ -73,15 +75,10 @@ function RegistrationPage(props) {
 
             if (defaultImage !== preview) {
                 const dataForResponse = new FormData();
-                dataForResponse.append('avatar', preview);
-                console.log(id);
-                console.log(preview);
+                dataForResponse.append('uploads', file);
                 const response = await fetch(`${postUser}/${id}${postAvatar}`, {
                     method: 'POST',
-                    body: dataForResponse,
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
+                    body: dataForResponse
                 });
             }
             history.push('/messenger')
