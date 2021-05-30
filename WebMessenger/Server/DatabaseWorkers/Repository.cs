@@ -20,8 +20,11 @@ namespace Server.DatabaseWorkers
         private static void FillRelations(DatabaseContext database)
         {
             foreach (var user in database.Users)
-            foreach (var chat in user.MyChatIds.Select(id => database.Find<Chat>(id)))
-                database.Add(new UserToChat {Chat = chat, User = user});
+            {
+                var enumerable = user.MyChatIds.Select(id => database.Find<Chat>(id));
+                foreach (var chat in enumerable)
+                    database.Add(new UserToChat {Chat = chat, User = user});
+            }
 
             database.SaveChanges();
         }
