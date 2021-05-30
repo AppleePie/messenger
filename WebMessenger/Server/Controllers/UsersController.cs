@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -68,6 +69,21 @@ namespace Server.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteUserById([FromRoute] Guid id)
         {
+            var user = await repository.FindByIdAsync<User>(id);
+            var removingIds = new List<Guid>();
+            foreach (var chat in user.UserToChats.Select(userToChat => userToChat.Chat))
+            {
+                foreach (var interlocutor in chat.UserToChats.Select(uc => uc.User).Where(u => u.Id != id))
+                {
+                    var idStart = interlocutor.RelationsWithChats.IndexOf(chat.Id.ToString(), StringComparison.Ordinal);
+                    interlocutor.RelationsWithChats = interlocutor.RelationsWithChats.Remove(idStart, chat.Id.ToString().Length);
+                    removingIds.Add(chat.Id);
+                    await repository.UpdateAsync(interlocutor);
+                }
+            }
+            
+            removingIds.ForEach(async (i) => await repository.DeleteAsync<Chat>(i));
+            
             await repository.DeleteAsync<User>(id);
             return NoContent();
         }
@@ -83,7 +99,7 @@ namespace Server.Controllers
         }
 
         [HttpPost("{id:guid}/avatar")]
-        public async Task<IActionResult> AddUserAvatar([FromRoute] Guid id, IFormFileCollection uploads)
+        public async Task<IActionResult> AddUserAvatar([FromRoute] Guid id, [FromBody] IFormFileCollection uploads)
         {
             if (uploads.Count != 1)
                 return BadRequest("Avatar file collection should contains only one element!");
@@ -92,39 +108,6 @@ namespace Server.Controllers
             var path = Path.Combine(uploadDirectory, id.ToString());
             await using var fileStream = new FileStream(path, FileMode.Create);
             await uploadedFile.CopyToAsync(fileStream);
-
-            return NoContent();
-        }
-
-        [HttpPost("users/chat/{id:guid}")]
-        public async Task<IActionResult> GetChatById(Guid id)
-        {
-            var chat = await repository.FindByIdAsync<Chat>(id);
-            if (chat is null)
-                return NotFound();
-
-            var chatDto = mapper.Map<ChatToSend>(chat);
-            return Ok(chatDto);
-        }
-
-        [HttpPost("users/new-chat")]
-        public async Task<IActionResult> CreateChat([FromBody] ChatToCreateDto newChat)
-        {
-            if (newChat is null)
-                return BadRequest();
-            var initiator = await repository.FindByIdAsync<User>(newChat.InitiatorId);
-            var interlocutor = await repository.FindByLoginAsync(newChat.InterlocutorName);
-            var chat = new Chat();
-            var chat1 = new UserToChat {User = initiator, Chat = chat};
-            var chat2 = new UserToChat {User = interlocutor, Chat = chat};
-            await repository.InsertAsync(chat1);
-            await repository.InsertAsync(chat2);
-
-            initiator.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
-            interlocutor.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
-
-            await repository.UpdateAsync(initiator);
-            await repository.UpdateAsync(interlocutor);
 
             return NoContent();
         }

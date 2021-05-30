@@ -12,7 +12,7 @@ namespace Server.Models
         public string Password { get; set; }
         public List<UserToChat> UserToChats { get; set; } = new();
 
-        public string RelationsWithChats { get; set; }
+        public string RelationsWithChats { get; set; } = "";
 
         [NotMapped] public const string Delimiter = ";";
 
