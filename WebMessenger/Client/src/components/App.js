@@ -22,7 +22,7 @@ function App() {
                 <Switch>
                     <Route path='/registration'><RegistrationPage setCurrentUser = {setCurrentUser}/></Route>
                     <Route path='/messenger'><Messenger userId = {currentUser}/></Route>
-                    <Route path='/logIn'><LogInPage userId = {setCurrentUser}/></Route>
+                    <Route path='/logIn'><LogInPage setCurrentUser = {setCurrentUser}/></Route>
                     <Redirect from='/' to='/logIn'/>
                 </Switch>
             </div>

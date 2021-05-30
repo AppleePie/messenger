@@ -1,11 +1,13 @@
 import React, {useState} from 'react';
-import { useHistory } from "react-router-dom";
+import {useHistory} from "react-router-dom";
 
-function LogInPage(props){
+function LogInPage(props) {
 
-    const getUsers = '/api/users';
     const defaultLoginExceptionMessage = 'Empty User Name';
+    const defaultPasswordExceptionMessage = 'Empty Password';
+
     const defaultInputNameClass = 'input-text';
+
 
     const [labelPasswordClass, setPasswordClass] = useState('label-text');
     const [labelUserNameClass, setUserNameClass] = useState('label-text');
@@ -16,14 +18,9 @@ function LogInPage(props){
     const [userObj, setUserObj] = useState(new Object({login: '', password: ''}));
     const [loginExceptionMessage, setLoginExceptionMessage] = useState(defaultLoginExceptionMessage);
     const [nameInputClass, setNameInputClass] = useState(defaultInputNameClass);
+    const [passwordExceptionMessage, setPasswordExceptionMessage] = useState(defaultPasswordExceptionMessage)
+    const [passwordInputClass, setPasswordInputClass] = useState(defaultInputNameClass);
     const history = useHistory();
-
-
-    const handleUserChange = (event) => {
-        const value = event.target.value;
-        setUserObj({...userObj, login: event.target.value});
-        setNeedMoveUser(value === '');
-    };
 
     const handlePasswordChange = (event) => {
         const value = event.target.value;
@@ -31,10 +28,32 @@ function LogInPage(props){
         setNeedMovePassword(value === '');
     };
 
-    const handleSubmit = (event) => {
+    const handleUserChange = (event) => {
+        const value = event.target.value;
+        setUserObj({...userObj, login: event.target.value});
+        setNeedMoveUser(value === '');
+    };
+
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
         if (!Object.values(userObj).includes('')) {
-
+            const response = await fetch(`api/users/check?login=${userObj.login}&password=${userObj.password}`);
+            if( response.status === 404){
+                setLoginExceptionMessage('User don\'t exists')
+                setLoginException('visible-wrong-input');
+                setNameInputClass(`${defaultInputNameClass} bad-input`);
+                return;
+            }
+            if( response.status === 400){
+                setPasswordExceptionMessage('Wrong Password');
+                setPasswordException('visible-wrong-input');
+                setPasswordInputClass(`${defaultInputNameClass} bad-input`);
+                return;
+            }
+            const id = await response.json();
+            props.setCurrentUser(id);
+            history.push('/messenger');
         } else {
             if (userObj.login === '') {
                 setLoginException('visible-wrong-input');
@@ -45,15 +64,15 @@ function LogInPage(props){
                 setPasswordClass('label-text bad-input');
             }
         }
-
     }
 
-    const handleSignIn = (event) => {
+    const handleToSign = (event) => {
         history.push('/registration');
     }
 
 
-    return(
+
+    return (
         <div className="container">
             <div className="login-form-wrapper">
                 <form className='form' method='GET' onSubmit={handleSubmit}>
@@ -75,8 +94,10 @@ function LogInPage(props){
                     </div>
                     <div>
                         <label className={labelPasswordClass} htmlFor="password">Password</label>
-                        <input className="input-text" type="text" id="password" autoComplete="off"
+                        <input className={passwordInputClass} type="text" id="password" autoComplete="off"
                                onFocus={() => {
+                                   setPasswordInputClass(defaultInputNameClass);
+                                   setPasswordExceptionMessage(defaultPasswordExceptionMessage);
                                    setPasswordClass('label-text input-focused')
                                    setPasswordException('wrong-input');
                                }}
@@ -84,11 +105,11 @@ function LogInPage(props){
                                onBlur={() => {
                                    if (needMovePassword) setPasswordClass('label-text');
                                }}/>
-                        <p className={passwordException}>Empty password</p>
+                        <p className={passwordException}>{passwordExceptionMessage}</p>
                     </div>
                     <div className='login-buttons-wrapper'>
-                        <input type='submit' className='login-submit' value='Submit' autoComplete='off'/>
-                        <button className='login-to-sign-button' onClick={handleSignIn}>Sign in</button>
+                        <input type='submit' className='login-submit' value='Submit'/>
+                        <button className='login-to-sign-button' onClick={handleToSign}>Sign in</button>
                     </div>
                 </form>
             </div>

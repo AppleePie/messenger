@@ -62,7 +62,7 @@ function RegistrationPage(props) {
             });
 
             if (created.status !== 201) {
-                setLoginExceptionMessage('This name is taken')
+                setLoginExceptionMessage('This name is taken');
                 setLoginException('visible-wrong-input');
                 setNameInputClass(`${defaultInputNameClass} bad-input`);
                 return;
@@ -83,7 +83,6 @@ function RegistrationPage(props) {
                 });
             }
             history.push('/messenger')
-            console.log(id);
         } else {
             if (userObj.login === '') {
                 setLoginException('visible-wrong-input');
@@ -137,7 +136,7 @@ function RegistrationPage(props) {
                                }}/>
                         <p className={passwordException}>Empty password</p>
                     </div>
-                    <input type="submit" className="sing-in-button" value="Submit"/>
+                    <input type="submit" className="submit-form" value="Submit"/>
                 </form>
             </div>
         </div>

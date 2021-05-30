@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -39,6 +38,19 @@ namespace Server.Controllers
             var userToSend = mapper.Map<UserToSendDto>(user);
 
             return Ok(userToSend);
+        }
+
+        [HttpGet("check")]
+        public async Task<IActionResult> GetUserByName([FromQuery] string login, [FromQuery] string password)
+        {
+            var user = await repository.FindByLoginAsync(login);
+
+            if (user is null)
+                return NotFound();
+            if (user.Password != password)
+                return BadRequest();
+            
+            return Ok(user.Id);
         }
 
         [HttpPost]
