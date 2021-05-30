@@ -32,7 +32,6 @@ namespace Server
             services.AddControllers().AddNewtonsoftJson().AddNewtonsoftJson(options =>
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
-            ;
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Server", Version = "v1"}); });
             services.AddSingleton<DatabaseContext>();
             services.AddSingleton<Repository>();
@@ -41,15 +40,21 @@ namespace Server
                     cfg.CreateMap<UserToCreateDto, User>();
                     cfg.CreateMap<User, UserToSendDto>().ForMember(u => u.Chats,
                         options =>
-                            options.MapFrom(user => user.UserToChats.Select(c => new ChatToSendDto
+                            options.MapFrom(user => user.UserToChats.Select(c => new ChatForUser
                                 {
                                     Id = c.ChatId,
                                     Interlocutor = c.Chat.UserToChats.First(u => u.UserId != user.Id).UserId
                                 }).ToList()
                             )
                     );
+                    cfg.CreateMap<Chat, ChatToSend>().ForMember(c => c.Participants,
+                        options => options.MapFrom(chat => 
+                            chat.UserToChats.Select(u => u.User.Id).ToList()
+                        )
+                    );
                 },
-                Array.Empty<System.Reflection.Assembly>());
+                Array.Empty<System.Reflection.Assembly>()
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

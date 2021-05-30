@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -27,6 +28,11 @@ namespace Server.Controllers
                 Directory.CreateDirectory(uploadDirectoryName);
             uploadDirectory = uploadDirectoryName;
         }
+
+        [HttpGet]
+        [Produces("application/json")]
+        public IActionResult GetUsers() =>
+            Ok(repository.GetUsers().Select(u => mapper.Map<UserToSendDto>(u)).ToList());
 
         [HttpGet("{id:guid}", Name = nameof(GetUserByIdAsync))]
         [Produces("application/json")]
@@ -75,6 +81,21 @@ namespace Server.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteUserById([FromRoute] Guid id)
         {
+            var user = await repository.FindByIdAsync<User>(id);
+            var removingIds = new List<Guid>();
+            foreach (var chat in user.UserToChats.Select(userToChat => userToChat.Chat))
+            {
+                foreach (var interlocutor in chat.UserToChats.Select(uc => uc.User).Where(u => u.Id != id))
+                {
+                    var idStart = interlocutor.RelationsWithChats.IndexOf(chat.Id.ToString(), StringComparison.Ordinal);
+                    interlocutor.RelationsWithChats = interlocutor.RelationsWithChats.Remove(idStart, chat.Id.ToString().Length);
+                    removingIds.Add(chat.Id);
+                    await repository.UpdateAsync(interlocutor);
+                }
+            }
+            
+            removingIds.ForEach(async (i) => await repository.DeleteAsync<Chat>(i));
+            
             await repository.DeleteAsync<User>(id);
             return NoContent();
         }
@@ -82,7 +103,8 @@ namespace Server.Controllers
         [HttpGet("{userId:guid}/avatar")]
         public async Task<IActionResult> GetUserAvatarAsync([FromRoute] Guid userId)
         {
-            await using var fileStream = new FileStream(Path.Combine(uploadDirectory, userId.ToString()), FileMode.Open);
+            await using var fileStream =
+                new FileStream(Path.Combine(uploadDirectory, userId.ToString()), FileMode.Open);
             var buffer = new byte[fileStream.Length];
             await fileStream.ReadAsync(buffer);
             return Ok($"data:image/*;base64,{Convert.ToBase64String(buffer)}");
@@ -98,28 +120,6 @@ namespace Server.Controllers
             var path = Path.Combine(uploadDirectory, id.ToString());
             await using var fileStream = new FileStream(path, FileMode.Create);
             await uploadedFile.CopyToAsync(fileStream);
-
-            return NoContent();
-        }
-
-        [HttpPost("users/new-chat")]
-        public async Task<IActionResult> CreateChat([FromBody] ChatToCreateDto newChat)
-        {
-            if (newChat is null)
-                return BadRequest();
-            var initiator = await repository.FindByIdAsync<User>(newChat.InitiatorId);
-            var interlocutor = await repository.FindByLoginAsync(newChat.InterlocutorName);
-            var chat = new Chat();
-            var chat1 = new UserToChat {User = initiator, Chat = chat};
-            var chat2 = new UserToChat {User = interlocutor, Chat = chat};
-            await repository.InsertAsync(chat1);
-            await repository.InsertAsync(chat2);
-
-            initiator.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
-            interlocutor.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
-
-            await repository.UpdateAsync(initiator);
-            await repository.UpdateAsync(interlocutor);
 
             return NoContent();
         }

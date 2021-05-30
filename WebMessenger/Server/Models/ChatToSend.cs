@@ -3,10 +3,9 @@ using System.Collections.Generic;
 
 namespace Server.Models
 {
-    public class UserToSendDto
+    public class ChatToSend
     {
         public Guid Id { get; set; }
-        public string Login { get; set; }
-        public List<ChatForUser> Chats { get; set; }
+        public List<Guid> Participants { get; set; }
     }
 }

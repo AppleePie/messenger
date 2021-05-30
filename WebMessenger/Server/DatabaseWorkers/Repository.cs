@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +14,22 @@ namespace Server.DatabaseWorkers
         public Repository(DatabaseContext database)
         {
             this.database = database;
-
+            FillRelations(database);
         }
 
+        private static void FillRelations(DatabaseContext database)
+        {
+            foreach (var user in database.Users)
+            {
+                var enumerable = user.MyChatIds.Select(id => database.Find<Chat>(id));
+                foreach (var chat in enumerable)
+                    database.Add(new UserToChat {Chat = chat, User = user});
+            }
+
+            database.SaveChanges();
+        }
+
+        public IEnumerable<User> GetUsers() => database.Users;
 
         public async Task<TEntity> FindByIdAsync<TEntity>(Guid id) where TEntity : class
         {
