@@ -90,6 +90,17 @@ namespace Server.Controllers
             return NoContent();
         }
 
+        [HttpPost("users/chat/{id:guid}")]
+        public async Task<IActionResult> GetChatById(Guid id)
+        {
+            var chat = await repository.FindByIdAsync<Chat>(id);
+            if (chat is null)
+                return NotFound();
+
+            var chatDto = mapper.Map<ChatToSend>(chat);
+            return Ok(chatDto);
+        }
+
         [HttpPost("users/new-chat")]
         public async Task<IActionResult> CreateChat([FromBody] ChatToCreateDto newChat)
         {
