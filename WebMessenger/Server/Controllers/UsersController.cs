@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -111,7 +112,7 @@ namespace Server.Controllers
         }
 
         [HttpPost("{id:guid}/avatar")]
-        public async Task<IActionResult> AddUserAvatar([FromRoute] Guid id, [FromBody] IFormFileCollection uploads)
+        public async Task<IActionResult> AddUserAvatar([FromRoute] Guid id, [FromForm] IFormFileCollection uploads)
         {
             if (uploads.Count != 1)
                 return BadRequest("Avatar file collection should contains only one element!");
