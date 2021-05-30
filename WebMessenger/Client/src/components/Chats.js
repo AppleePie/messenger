@@ -1,13 +1,38 @@
+import {useState} from "react";
+
 function Chats(props) {
     return (
         <div className='chats'>
-            <Search/>
-            <ChatScroll chats={props.chats}/>
+            <Search currentUser={props.currentUser}/>
+            <ChatScroll chats={props.chats} />
         </div>
     );
 }
 
-function Search() {
+function Search(props) {
+    const getAllUsersApi = '/api/users'
+
+    const [isLoading, setIsLoading] = useState(true);
+    const [searchPatter,setSearchPattern] = useState('');
+
+
+    const getUsers = async () => {
+        return await fetch(getAllUsersApi).then(r => r.json());
+    }
+
+    const getSuitableUsers = async (currUser) => {
+        const users = await getUsers();
+        console.log(users);
+        setIsLoading(false);
+    }
+
+    const handleSearch = (event) => {
+        const value = event.target.value;
+        setSearchPattern(value);
+        getSuitableUsers(props.currentUser);
+    }
+
+
     const loupe = (
         <svg className="search-loupe" width="19" height="19" viewBox="0 0 19 19" fill="none"
              xmlns="http://www.w3.org/2000/svg">
@@ -19,7 +44,7 @@ function Search() {
     return (
         <div>
             {loupe}
-            <input className='search-button' type='search' placeholder='Enter the name of the interlocutor...'/>
+            <input className='search-button' placeholder='Enter the name of the interlocutor...' onChange={handleSearch}/>
         </div>
     )
 
