@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Server.DatabaseWorkers;
+using Server.Models;
 
 namespace Server
 {
@@ -28,9 +29,18 @@ namespace Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
+            ;
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Server", Version = "v1"}); });
-            services.AddSingleton<IUserRepository, UserRepository>();
+            services.AddSingleton<DatabaseContext>();
+            services.AddSingleton<Repository>();
+            services.AddAutoMapper(cfg =>
+                {
+                    cfg.CreateMap<UserToCreateDto, User>();
+                },
+                Array.Empty<System.Reflection.Assembly>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

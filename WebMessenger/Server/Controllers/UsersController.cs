@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
-using System.Security.Cryptography;
+using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Server.DatabaseWorkers;
@@ -13,12 +14,14 @@ namespace Server.Controllers
     public class UsersController : Controller
     {
         private const string UploadDirectoryName = "Files";
-        private readonly IUserRepository userRepository;
+        private readonly Repository repository;
+        private readonly IMapper mapper;
         private readonly string uploadDirectory;
 
-        public UsersController(IUserRepository userRepository)
+        public UsersController(Repository repository, IMapper mapper)
         {
-            this.userRepository = userRepository;
+            this.repository = repository;
+            this.mapper = mapper;
 
             var uploadDirectoryName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, UploadDirectoryName);
             if (!Directory.Exists(uploadDirectoryName))
@@ -30,35 +33,53 @@ namespace Server.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> GetUserByIdAsync([FromRoute] Guid id)
         {
-            var user = await userRepository.FindByIdAsync(id);
+            var user = await repository.FindByIdAsync<User>(id);
             if (user is null)
                 return NotFound();
+            var userToSend = new UserToSendDto
+            {
+                Id = user.Id,
+                Login = user.Login,
+                Chats = user.UserToChats.Select(c => new ChatToSendDto()
+                {
+                    Id = c.ChatId,
+                    Interlocutor = c.Chat.UserToChats.First(u => u.UserId != user.Id).UserId
+                }).ToList()
+            };
 
-            return Ok(user);
+            return Ok(userToSend);
         }
 
         [HttpPost]
         [Produces("application/json")]
-        public async Task<IActionResult> CreateUserAsync([FromBody] UserDto userEntity)
+        public async Task<IActionResult> CreateUserAsync([FromBody] UserToCreateDto user)
         {
-            if (userEntity is null)
+            if (user is null)
                 return BadRequest();
 
             if (!ModelState.IsValid)
                 return UnprocessableEntity(ModelState);
 
-            if (await userRepository.FindByLoginAsync(userEntity.Login) != null)
+            if (await repository.FindByLoginAsync(user.Login) != null)
                 return Conflict("User with this username already exists!");
 
-            var insertedUserId = await userRepository.InsertAsync(userEntity);
-            return CreatedAtRoute(nameof(GetUserByIdAsync), new {id = insertedUserId}, insertedUserId);
+            var userDto = mapper.Map<User>(user);
+
+            var insertedUser = await repository.InsertAsync(userDto);
+            return CreatedAtRoute(nameof(GetUserByIdAsync), new {id = insertedUser.Id}, insertedUser.Id);
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteUserById([FromRoute] Guid id)
+        {
+            await repository.DeleteAsync<User>(id);
+            return NoContent();
         }
 
         [HttpGet("{userId:guid}/avatar")]
         public async Task<IActionResult> GetUserAvatarAsync([FromRoute] Guid userId)
         {
-            var avatarPath = (await userRepository.FindByIdAsync(userId)).AvatarFilePath;
-            await using var fileStream = new FileStream(Path.Combine(uploadDirectory, avatarPath), FileMode.Open);
+            await using var fileStream = new FileStream(Path.Combine(uploadDirectory, userId.ToString()), FileMode.Open);
             var buffer = new byte[fileStream.Length];
             await fileStream.ReadAsync(buffer);
             return Ok($"data:image/*;base64,{Convert.ToBase64String(buffer)}");
@@ -74,15 +95,29 @@ namespace Server.Controllers
             var path = Path.Combine(uploadDirectory, id.ToString());
             await using var fileStream = new FileStream(path, FileMode.Create);
             await uploadedFile.CopyToAsync(fileStream);
-
-            await userRepository.ChangeAvatarAsync(id);
+            
             return NoContent();
         }
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteUserById([FromRoute] Guid id)
+        [HttpPost("users/new-chat")]
+        public async Task<IActionResult> CreateChat([FromBody] ChatToCreateDto newChat)
         {
-            await userRepository.DeleteAsync(id);
+            if (newChat is null)
+                return BadRequest();
+            var initiator = await repository.FindByIdAsync<User>(newChat.InitiatorId);
+            var interlocutor = await repository.FindByLoginAsync(newChat.InterlocutorName);
+            var chat = new Chat();
+            var chat1 = new UserToChat { User = initiator, Chat = chat};
+            var chat2 = new UserToChat {User = interlocutor, Chat = chat};
+            await repository.InsertAsync(chat1);
+            await repository.InsertAsync(chat2);
+            
+            initiator.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
+            interlocutor.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
+            
+            await repository.UpdateAsync(initiator);
+            await repository.UpdateAsync(interlocutor);
+
             return NoContent();
         }
     }

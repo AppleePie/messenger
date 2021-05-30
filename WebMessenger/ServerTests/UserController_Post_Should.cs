@@ -1,9 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Server.Models;
 
 namespace ServerTests
 {
@@ -14,9 +17,10 @@ namespace ServerTests
         {
             var request = new HttpRequestMessage {Method = HttpMethod.Post, RequestUri = BuildUsersUri()};
             request.Headers.Add("Accept", "*/*");
+            var newName = Guid.NewGuid().ToString().Replace("-", "");
             request.Content = new
             {
-                login = "mjackson",
+                login = newName,
                 password = "Jackson"
             }.SerializeToJsonContent();
             var response = HttpClient.Send(request);
@@ -32,9 +36,10 @@ namespace ServerTests
             CheckUserCreated(createdUserId, createdUserUri, new
             {
                 id = createdUserId,
-                login = "mjackson",
+                login = newName,
                 password = "Jackson",
-                avatarFilePath = "null"
+                avatarFilePath = "null",
+                chats = new List<Chat>()
             });
         }
 
