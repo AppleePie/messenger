@@ -111,7 +111,7 @@ namespace Server.Controllers
         }
 
         [HttpPost("{id:guid}/avatar")]
-        public async Task<IActionResult> AddUserAvatar([FromRoute] Guid id, IFormFileCollection uploads)
+        public async Task<IActionResult> AddUserAvatar([FromRoute] Guid id, [FromBody] IFormFileCollection uploads)
         {
             if (uploads.Count != 1)
                 return BadRequest("Avatar file collection should contains only one element!");
