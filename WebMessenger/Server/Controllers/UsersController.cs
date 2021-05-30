@@ -44,8 +44,11 @@ namespace Server.Controllers
         public async Task<IActionResult> GetUserByName([FromQuery] string login, [FromQuery] string password)
         {
             var user = await repository.FindByLoginAsync(login);
+
             if (user is null)
                 return NotFound();
+            if (user.Password != password)
+                return BadRequest();
             
             return Ok(user.Id);
         }

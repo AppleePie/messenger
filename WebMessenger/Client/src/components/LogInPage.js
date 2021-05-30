@@ -1,14 +1,8 @@
-// eslint-disable-next-line no-unused-vars
 import React, {useState} from 'react';
-import { useHistory } from "react-router-dom";
+import {useHistory} from "react-router-dom";
 
+function LogInPage(props) {
 
-
-function RegistrationPage(props) {
-
-    const defaultImage = "/icons/default-photo.jpg";
-    const postUser = '/api/users';
-    const postAvatar = '/avatar'
     const defaultLoginExceptionMessage = 'Empty User Name';
     const defaultInputNameClass = 'input-text';
 
@@ -18,7 +12,6 @@ function RegistrationPage(props) {
     const [loginException, setLoginException] = useState('wrong-input');
     const [needMovePassword, setNeedMovePassword] = useState(true);
     const [needMoveUser, setNeedMoveUser] = useState(true);
-    const [preview, setPreview] = useState(defaultImage);
     const [userObj, setUserObj] = useState(new Object({login: '', password: ''}));
     const [loginExceptionMessage, setLoginExceptionMessage] = useState(defaultLoginExceptionMessage);
     const [nameInputClass, setNameInputClass] = useState(defaultInputNameClass);
@@ -36,53 +29,20 @@ function RegistrationPage(props) {
         setNeedMoveUser(value === '');
     };
 
-    const handleImageChange = (event) => {
-        if (event.target.files[0]['type'].split('/')[0] === 'image') {
-            const reader = new FileReader();
-            const file = event.target.files[0];
-            reader.onload = () => {
-                setPreview(reader.result);
-            }
-            reader.readAsDataURL(file);
-        } else {
-            alert("You need to download image")
-        }
-    };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (!Object.values(userObj).includes('')) {
-
-            const created = await fetch(postUser, {
-                method: 'POST',
-                body: JSON.stringify(userObj),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (created.status !== 201) {
-                setLoginExceptionMessage('This name is taken');
-                setLoginException('visible-wrong-input');
-                setNameInputClass(`${defaultInputNameClass} bad-input`);
+            const response = await fetch(`api/users/check?login=${userObj.login}&password=${userObj.password}`);
+            if( response.status === 404){
                 return;
             }
-
-            const id = await created.json();
-            props.setCurrentUser(id);
-
-            if (defaultImage !== preview) {
-                const dataForResponse = new FormData();
-                dataForResponse.append('avatar', preview);
-                const response = await fetch(`${postUser}/${id}${postAvatar}`, {
-                    method: 'POST',
-                    body: dataForResponse,
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
+            if( response.status === 400){
+                return;
             }
-            history.push('/messenger')
+            const id = await response.json();
+            props.setCurrentUser(id);
+            history.push('/messenger');
         } else {
             if (userObj.login === '') {
                 setLoginException('visible-wrong-input');
@@ -95,19 +55,17 @@ function RegistrationPage(props) {
         }
     }
 
+    const handleToSign = (event) => {
+        history.push('/registration');
+    }
+
+
 
     return (
         <div className="container">
-            <div className="form-wrapper">
-                <form className="form" method="POST" onSubmit={handleSubmit}>
-                    <h3 className="sign-in-text">Sign in</h3>
-                    <div>
-                        <input className="input-file" id="image" type="file" autoComplete="off"
-                               onChange={handleImageChange}/>
-                        <label htmlFor="image">
-                            <img className="preview" src={preview} alt="preview"/>
-                        </label>
-                    </div>
+            <div className="login-form-wrapper">
+                <form className='form' method='GET' onSubmit={handleSubmit}>
+                    <h3 className='sign-in-text'>Log In</h3>
                     <div>
                         <label className={labelUserNameClass} htmlFor="user-name">User Name</label>
                         <input className={nameInputClass} type="text" id="user-name" autoComplete="off"
@@ -136,14 +94,14 @@ function RegistrationPage(props) {
                                }}/>
                         <p className={passwordException}>Empty password</p>
                     </div>
-                    <input type="submit" className="submit-form" value="Submit"/>
+                    <div className='login-buttons-wrapper'>
+                        <input type='submit' className='login-submit' value='Submit'/>
+                        <button className='login-to-sign-button' onClick={handleToSign}>Sign in</button>
+                    </div>
                 </form>
             </div>
         </div>
-    );
+    )
 }
 
-
-export default RegistrationPage
-
-
+export default LogInPage

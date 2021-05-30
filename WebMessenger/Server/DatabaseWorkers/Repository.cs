@@ -13,17 +13,9 @@ namespace Server.DatabaseWorkers
         public Repository(DatabaseContext database)
         {
             this.database = database;
-            FillRelations(database);
+
         }
 
-        private static void FillRelations(DatabaseContext database)
-        {
-            foreach (var user in database.Users)
-            foreach (var chat in user.MyChatIds.Select(id => database.Find<Chat>(id)))
-                database.Add(new UserToChat {Chat = chat, User = user});
-
-            database.SaveChanges();
-        }
 
         public async Task<TEntity> FindByIdAsync<TEntity>(Guid id) where TEntity : class
         {
