@@ -6,7 +6,6 @@ import {useHistory} from "react-router-dom";
 function Messenger(props) {
     const userUrl = '/api/users';
 
-    const statId4 = 'c6af1fa7-73e9-4ef2-8913-aacec4d43276';
     const [chatObj, setChats] = useState([]);
     const [isLoading, setLoading] = useState(true);
     const history = useHistory();
@@ -51,7 +50,7 @@ function Messenger(props) {
     return (
         <div className='messenger-wrapper'>
             <Header/>
-            <Chats chats={renderChat()}/>
+            <Chats chats={renderChat()} currentUser = {props.userId}/>
         </div>
     )
 }

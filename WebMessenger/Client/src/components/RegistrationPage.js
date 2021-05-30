@@ -74,6 +74,8 @@ function RegistrationPage(props) {
             if (defaultImage !== preview) {
                 const dataForResponse = new FormData();
                 dataForResponse.append('avatar', preview);
+                console.log(id);
+                console.log(preview);
                 const response = await fetch(`${postUser}/${id}${postAvatar}`, {
                     method: 'POST',
                     body: dataForResponse,
