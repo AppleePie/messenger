@@ -10,8 +10,6 @@ function Messenger(props) {
 
     const [chatObj, setChats] = useState([]);
     const [isLoading, setLoading] = useState(true);
-    const [isChoseNewDialogue,setIsChoseNewDialogue] = useState(false);
-    const [newUserDialogue,setNewUserDialogue] = useState('');
     const history = useHistory();
 
     const getUser = async (id) =>
@@ -36,33 +34,31 @@ function Messenger(props) {
             const chatId = chat.id;
             res.push({chatId: chatId, avatar: avatar, login: result, interlocutor: chat.interlocutor});
         }
-        setChats(res);
-        setLoading(false);
+        return res;
     }
 
 
     useEffect(() => {
+        let isMounted = true;
         if (props.userId === '') {
             history.push('/login')
             return;
         }
-        setIsChoseNewDialogue(false);
-        fetchChats(props.userId);
-    }, [isChoseNewDialogue]);
-
-
-
-    const renderChat = () => {
-        return isLoading ? [] : chatObj;
-    }
+        fetchChats(props.userId).then(r => {
+            setChats(r);
+            setLoading(false);
+        });
+        return () => {
+            isMounted = false
+        };
+    }, []);
 
 
     return (
         <div className='messenger-wrapper'>
             <Header/>
             <div className='chats-wrapper'>
-                <Chats chats={renderChat()} currentUser = {props.userId} setIsChoseNewDialogue={setIsChoseNewDialogue}/>
-                <ChatWindow user={newUserDialogue}/>
+                <Chats chats={isLoading ? [] : chatObj} currentUser={props.userId} setChats={setChats}/>
             </div>
         </div>
     )

@@ -5,7 +5,7 @@ import PseudoSelector from "./PseudoSelector";
 function Chats(props) {
     return (
         <div className='chats'>
-            <Search currentUser={props.currentUser} setIsChoseNewDialogue={props.setIsChoseNewDialogue}/>
+            <Search currentUser={props.currentUser} chats={props.chats} setChats={props.setChats}/>
             <ChatScroll chats={props.chats}/>
         </div>
     );
@@ -48,15 +48,16 @@ function Search(props) {
 
     const getSuitableUsers = async (currUser, searchPattern) => {
         const userArray = Array.from(users.values());
-        const foundUsers = userArray.filter((userObj) => userObj.id !== props.currentUser
+        return userArray.filter((userObj) => userObj.id !== props.currentUser
             && userObj.login.toLowerCase().startsWith(searchPattern.toLowerCase())
             && checkUserHaveChat(userObj));
-        setFoundUsers(foundUsers);
-        setIsHidden(false);
     }
 
     const handleSearch = (event) => {
-        if (!isLoading) getSuitableUsers(props.currentUser, event.target.value);
+        if (!isLoading) getSuitableUsers(props.currentUser, event.target.value).then(r => {
+            setFoundUsers(r);
+            setIsHidden(false);
+        });
     }
 
 
@@ -82,10 +83,13 @@ function Search(props) {
                 <input className='search-button' type='search' placeholder='Enter the name of the interlocutor...'
                        onChange={handleSearch} onFocus={handleSearch}/>
                 {isHidden ? null :
-                    <PseudoSelector foundUsers={isLoading ? [] : foundUsers} currentuser={props.currentUser}
+                    <PseudoSelector foundUsers={isLoading ? [] : foundUsers}
+                                    currentuser={props.currentUser}
                                     users={users}
                                     setIsHidden={setIsHidden}
-                                    setIsChoseNewDialogue={props.setIsChoseNewDialogue}/>}
+                                    chats = {props.chats}
+                                    setChats = {props.setChats}
+                    />}
             </div>
         </div>
     )
