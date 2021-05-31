@@ -5,7 +5,7 @@ function PseudoSelector(props){
 
     const handleClick = async (login) => {
         props.setIsLoadingOrHidden(true);
-        props.setIsChoseNewDialogue(true);
+        // props.setIsChoseNewDialogue(true);
         const response = await fetch('/api/chats', {
             method: 'POST',
             body: JSON.stringify({
