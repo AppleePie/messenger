@@ -1,35 +1,40 @@
 import {useState} from "react";
+import PseudoSelector from "./PseudoSelector";
+
 
 function Chats(props) {
     return (
         <div className='chats'>
-            <Search currentUser={props.currentUser}/>
+            <Search currentUser={props.currentUser} setIsChoseNewDialogue={props.setIsChoseNewDialogue}/>
             <ChatScroll chats={props.chats} />
         </div>
     );
 }
 
 function Search(props) {
+
     const getAllUsersApi = '/api/users'
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchPatter,setSearchPattern] = useState('');
+    const [isLoadingOrHidden, setIsLoadingOrHidden] = useState(true);
+    const [foundUsers, setFoundUsers] = useState([]);
+
+    const checkUserHaveChat = (user) => {
+        return !(user.chats.some(chat => chat.interlocutor === props.currentUser));
+    }
 
 
     const getUsers = async () => {
         return await fetch(getAllUsersApi).then(r => r.json());
     }
 
-    const getSuitableUsers = async (currUser) => {
-        const users = await getUsers();
-        console.log(users);
-        setIsLoading(false);
+    const getSuitableUsers = async (currUser, searchPattern) => {
+        const users = (await getUsers()).filter(user => user.id !== props.currentUser && user.login.startsWith(searchPattern) && checkUserHaveChat(user));
+        setFoundUsers(users);
+        setIsLoadingOrHidden(false);
     }
 
     const handleSearch = (event) => {
-        const value = event.target.value;
-        setSearchPattern(value);
-        getSuitableUsers(props.currentUser);
+        getSuitableUsers(props.currentUser, event.target.value);
     }
 
 
@@ -41,13 +46,27 @@ function Search(props) {
                 fill="black"/>
         </svg>
     );
+
+    const handleBlur = (event) => {
+        if (event === undefined || event.relatedTarget === null || event.relatedTarget.className !== 'found-user') {
+            setIsLoadingOrHidden(true);
+            console.log('lox');
+        }
+    }
+
+
     return (
         <div>
             {loupe}
-            <input className='search-button' placeholder='Enter the name of the interlocutor...' onChange={handleSearch}/>
+            <div onBlur={handleBlur}>
+                <input className='search-button' type='search' placeholder='Enter the name of the interlocutor...'
+                       onChange={handleSearch}/>
+                {isLoadingOrHidden ? null : <PseudoSelector foundUsers={foundUsers} currentuser={props.currentUser}
+                                                            setIsLoadingOrHidden={setIsLoadingOrHidden}
+                                                            setIsChoseNewDialogue={props.setIsChoseNewDialogue}/>}
+            </div>
         </div>
     )
-
 }
 
 

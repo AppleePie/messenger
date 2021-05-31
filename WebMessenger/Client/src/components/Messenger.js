@@ -8,6 +8,7 @@ function Messenger(props) {
 
     const [chatObj, setChats] = useState([]);
     const [isLoading, setLoading] = useState(true);
+    const [isChoseNewDialogue,setIsChoseNewDialogue] = useState(false);
     const history = useHistory();
 
     const getUser = async (id) =>
@@ -23,7 +24,7 @@ function Messenger(props) {
         const res = [];
         for (const chat of chats) {
             const result = (await getUser(chat.interlocutor)).login;
-            const avatar = await fetch(`${userUrl}/${props.userId}/avatar`).then(r => r.text());
+            const avatar = await fetch(`${userUrl}/${chat.interlocutor}/avatar`).then(r => r.text());
             const chatId = chat.id;
             res.push({chatId: chatId, avatar: avatar, login: result, interlocutor: chat.interlocutor});
         }
@@ -37,8 +38,9 @@ function Messenger(props) {
             history.push('/login')
             return;
         }
+        setIsChoseNewDialogue(false);
         fetchChats(props.userId);
-    }, []);
+    }, [isChoseNewDialogue]);
 
 
 
@@ -50,7 +52,7 @@ function Messenger(props) {
     return (
         <div className='messenger-wrapper'>
             <Header/>
-            <Chats chats={renderChat()} currentUser = {props.userId}/>
+            <Chats chats={renderChat()} currentUser = {props.userId} setIsChoseNewDialogue={setIsChoseNewDialogue}/>
         </div>
     )
 }

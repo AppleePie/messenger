@@ -74,6 +74,7 @@ function RegistrationPage(props) {
             props.setCurrentUser(id);
 
             if (defaultImage !== preview) {
+                console.log(file);
                 const dataForResponse = new FormData();
                 dataForResponse.append('uploads', file);
                 const response = await fetch(`${postUser}/${id}${postAvatar}`, {

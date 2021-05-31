@@ -66,7 +66,7 @@ function LogInPage(props) {
         }
     }
 
-    const handleToSign = (event) => {
+    const handleToSign = () => {
         history.push('/registration');
     }
 
