@@ -28,7 +28,14 @@ namespace Server
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();
+            services.AddSignalR();
+            services.AddCors(options => options.AddPolicy("ClientPermission", policy =>
+            {
+                policy.AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .WithOrigins("http://localhost:3000")
+                    .AllowCredentials();
+            }));
             services.AddControllers().AddNewtonsoftJson().AddNewtonsoftJson(options =>
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
@@ -47,11 +54,12 @@ namespace Server
                                 }).ToList()
                             )
                     );
-                    cfg.CreateMap<Chat, ChatToSend>().ForMember(c => c.Participants,
-                        options => options.MapFrom(chat => 
-                            chat.UserToChats.Select(u => u.User.Id).ToList()
-                        )
-                    );
+                    cfg.CreateMap<Chat, ChatToSend>()
+                        .ForMember(c => c.Participants,
+                            options => options.MapFrom(chat =>
+                                chat.UserToChats.Select(u => u.User.Id).ToList()
+                            )
+                        );
                 },
                 Array.Empty<System.Reflection.Assembly>()
             );
@@ -68,13 +76,17 @@ namespace Server
             }
 
             app.UseHttpsRedirection();
-            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-
+            // app.UseCors(builder => builder.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod());
+            app.UseCors("ClientPermission");
             app.UseRouting();
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/hubs/chat");
+            });
         }
     }
 }
