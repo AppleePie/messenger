@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import Chats from "./Chats";
 import ChatWindow from "./ChatWindow";
 import {useHistory} from "react-router-dom";
+import {HubConnectionBuilder} from "@microsoft/signalr";
 
 
 function Messenger(props) {
@@ -47,6 +48,24 @@ function Messenger(props) {
             history.push('/login')
             return;
         }
+
+        const connection = new HubConnectionBuilder()
+            .withUrl('/hubs/chat')
+            .withAutomaticReconnect()
+            .build();
+
+        connection.start()
+            .then(_ => {
+                console.log('Connected!');
+
+                connection.on('ReceiveMessage', message => {
+                    console.log(message);
+                });
+
+                connection.invoke("Send", props.userId).then(r => console.log(r));
+            })
+            .catch(e => console.log('Connection failed: ', e));
+
         getUser(props.userId).then(r => {
             setCurrentUserLogin(r.login);
         });
