@@ -7,5 +7,6 @@ namespace Server.Models
     {
         public Guid Id { get; set; }
         public List<Guid> Participants { get; set; }
+        public List<MessageToSend> Messages { get; set; }
     }
 }

@@ -59,7 +59,16 @@ namespace Server
                             options => options.MapFrom(chat =>
                                 chat.UserToChats.Select(u => u.User.Id).ToList()
                             )
-                        );
+                        )
+                        .ForMember(c => c.Messages,
+                            options => options.MapFrom(chat =>
+                                chat.ChatToMessages.Select(x => new MessageToSend
+                                {
+                                    UserId = x.Message.UserToMessage.UserId,
+                                    Content = x.Message.Content
+                                }).ToList()
+                            )
+                        ); 
                 },
                 Array.Empty<System.Reflection.Assembly>()
             );
