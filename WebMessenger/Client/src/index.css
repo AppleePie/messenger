@@ -314,6 +314,15 @@ code {
     min-width: 100%;
     min-height: 750px;
     display: flex;
+    flex-direction: column;
+}
+
+.my-message {
+    align-self: start;
+}
+
+.interlocutor-message {
+    align-self: end;
 }
 
 

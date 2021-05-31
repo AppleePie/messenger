@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import Chats from "./Chats";
 import ChatWindow from "./ChatWindow";
 import {useHistory} from "react-router-dom";
@@ -12,9 +12,10 @@ function Messenger(props) {
     const [chatObj, setChats] = useState([]);
     const [isLoading, setLoading] = useState(true);
     const [currentUserAvatar, setCurrentUserAvatar] = useState('');
-    const [currentUserLogin, setCurrentUserLogin] = useState('')
+    const [currentUserLogin, setCurrentUserLogin] = useState('');
     const [currentChatId, setCurrentChatId] = useState('');
     const [currentInterlocutor, setCurrentInterlocutor] = useState({login: '', avatar: '', interlocutor: ''});
+    const [currentMessages,setCurrentMessages] = useState([]);
     const history = useHistory();
 
     const getUser = async (id) =>
@@ -42,6 +43,14 @@ function Messenger(props) {
         return res;
     }
 
+    const pushMessage = useCallback(message => {
+        const messages = currentMessages.slice();
+        messages.push(message);
+        console.log(messages);
+        setCurrentMessages(messages);
+        console.log(currentMessages);
+    }, [])
+
 
     useEffect(() => {
         if (props.userId === '') {
@@ -49,22 +58,19 @@ function Messenger(props) {
             return;
         }
 
+
         const connection = new HubConnectionBuilder()
-            .withUrl('/hubs/chat')
+            .withUrl('https://localhost:5001/hubs/chat')
             .withAutomaticReconnect()
             .build();
 
         connection.start()
             .then(_ => {
-                console.log('Connected!');
-
-                connection.on('ReceiveMessage', message => {
-                    console.log(message);
-                });
-
-                connection.invoke("Send", props.userId).then(r => console.log(r));
+                connection.invoke("Send", props.userId).then(r => r);
             })
-            .catch(e => console.log('Connection failed: ', e));
+            .catch(e => e);
+
+        connection.on('ReceiveMessage',pushMessage);
 
         getUser(props.userId).then(r => {
             setCurrentUserLogin(r.login);
@@ -88,6 +94,8 @@ function Messenger(props) {
                         currentUser={props.userId}
                         chatObj={chatObj}
                         setChats={setChats}
+                        currentMessages={currentMessages}
+                        setCurrentMessages={setCurrentMessages}
             />
         ) : (
             <div className='default-chat-window-message-wrapper'>

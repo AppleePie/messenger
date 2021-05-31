@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 
 function ChatWindow(props) {
 
-    const [textMessage, setTextMessage] = useState('');
+    const [textMessage, setTextMessage] = useState('')
 
 
     const handleChange = (event) => {
@@ -21,9 +21,27 @@ function ChatWindow(props) {
     });
 
 
+    const sendMessage = async () => {
+        await fetch('/Chat/messages', {
+            method: 'POST',
+            body: JSON.stringify({
+                initiator: props.currentUser,
+                interlocutor: props.currentInterlocutor.interlocutor,
+                message: textMessage
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+    }
+
+
     const handleSend = async (event) => {
         event.preventDefault();
-        if (props.currentChatId === '' && textMessage !== '') {
+        if(textMessage === ''){
+            alert('Пустое сообщение');
+        }
+        if (props.currentChatId === '' ) {
             const response = await postChat().then(r => r.json());
             props.currentInterlocutor.scroll.delete(props.currentInterlocutor.login);
             props.setCurrentChatId(response);
@@ -35,14 +53,14 @@ function ChatWindow(props) {
                 interlocutor: props.currentInterlocutor.interlocutor
             })
             props.setChats(currentChats);
-            console.log('подружились');
-            //TODO отправка сообщений писать тут
-        } else if (textMessage !== '') {
-            //TODO отправка сообщений писать тут
-            alert('JOPA');
-        } else {
-            alert('Пустое сообщение');
         }
+        sendMessage();
+    }
+
+    const renderMessage = (message) => {
+        return (
+            <p className={message.initiator === props.currentUser ? 'my-message' : 'interlocutor-message'} key={message.message}>{message.message}</p>
+        )
     }
 
 
