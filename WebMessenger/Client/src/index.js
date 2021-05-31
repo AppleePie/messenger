@@ -1,10 +1,10 @@
 import ReactDOM from 'react-dom';
 import './index.css';
-import RegistrationPage from "./components/RegistrationPage";
 import App from "./components/App";
+// import App from "./App";
 
 ReactDOM.render(
-    <App/>,
+    <App />,
     document.getElementById('root')
 );
 
