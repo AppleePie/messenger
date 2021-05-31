@@ -4,8 +4,9 @@ import React, {useEffect, useState} from 'react';
 function PseudoSelector(props){
 
     const handleClick = async (login) => {
-        props.setIsLoadingOrHidden(true);
+        props.setIsHidden(true);
         props.setIsChoseNewDialogue(true);
+        props.users.delete(login);
         const response = await fetch('/api/chats', {
             method: 'POST',
             body: JSON.stringify({

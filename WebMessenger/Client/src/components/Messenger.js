@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import Chats from "./Chats";
+import ChatWindow from "./ChatWindow";
 import {useHistory} from "react-router-dom";
 
 
@@ -9,6 +10,7 @@ function Messenger(props) {
     const [chatObj, setChats] = useState([]);
     const [isLoading, setLoading] = useState(true);
     const [isChoseNewDialogue,setIsChoseNewDialogue] = useState(false);
+    const [newUserDialogue,setNewUserDialogue] = useState('');
     const history = useHistory();
 
     const getUser = async (id) =>
@@ -52,7 +54,10 @@ function Messenger(props) {
     return (
         <div className='messenger-wrapper'>
             <Header/>
-            <Chats chats={renderChat()} currentUser = {props.userId} setIsChoseNewDialogue={setIsChoseNewDialogue}/>
+            <div className='chats-wrapper'>
+                <Chats chats={renderChat()} currentUser = {props.userId} setIsChoseNewDialogue={setIsChoseNewDialogue}/>
+                <ChatWindow user={newUserDialogue}/>
+            </div>
         </div>
     )
 }

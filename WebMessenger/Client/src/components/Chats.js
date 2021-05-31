@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import PseudoSelector from "./PseudoSelector";
 
 
@@ -6,7 +6,7 @@ function Chats(props) {
     return (
         <div className='chats'>
             <Search currentUser={props.currentUser} setIsChoseNewDialogue={props.setIsChoseNewDialogue}/>
-            <ChatScroll chats={props.chats} />
+            <ChatScroll chats={props.chats}/>
         </div>
     );
 }
@@ -15,8 +15,11 @@ function Search(props) {
 
     const getAllUsersApi = '/api/users'
 
-    const [isLoadingOrHidden, setIsLoadingOrHidden] = useState(true);
+    const [isHidden, setIsHidden] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
+    const [users, setUsers] = useState(new Map());
     const [foundUsers, setFoundUsers] = useState([]);
+
 
     const checkUserHaveChat = (user) => {
         return !(user.chats.some(chat => chat.interlocutor === props.currentUser));
@@ -24,17 +27,34 @@ function Search(props) {
 
 
     const getUsers = async () => {
-        return await fetch(getAllUsersApi).then(r => r.json());
+        const allUsers = await fetch(getAllUsersApi).then(r => r.json());
+        const userDictionary = new Map();
+        allUsers.forEach((user) => userDictionary.set(user.login,user));
+        return userDictionary;
     }
 
+    useEffect(() => {
+        let isMounted = true;
+        getUsers().then((r) => {
+            if(isMounted){
+                setUsers(r);
+                setIsLoading(false);
+            }
+        });
+        return () => { isMounted = false };
+    }, [])
+
     const getSuitableUsers = async (currUser, searchPattern) => {
-        const users = (await getUsers()).filter(user => user.id !== props.currentUser && user.login.startsWith(searchPattern) && checkUserHaveChat(user));
-        setFoundUsers(users);
-        setIsLoadingOrHidden(false);
+        const userArray = Array.from(users.values());
+        const foundUsers = userArray.filter((userObj) => userObj.id !== props.currentUser
+            && userObj.login.toLowerCase().startsWith(searchPattern.toLowerCase())
+            && checkUserHaveChat(userObj));
+        setFoundUsers(foundUsers);
+        setIsHidden(false);
     }
 
     const handleSearch = (event) => {
-        getSuitableUsers(props.currentUser, event.target.value);
+        if (!isLoading) getSuitableUsers(props.currentUser, event.target.value);
     }
 
 
@@ -49,21 +69,21 @@ function Search(props) {
 
     const handleBlur = (event) => {
         if (event === undefined || event.relatedTarget === null || event.relatedTarget.className !== 'found-user') {
-            setIsLoadingOrHidden(true);
-            console.log('lox');
+            setIsHidden(true);
         }
     }
-
 
     return (
         <div>
             {loupe}
             <div onBlur={handleBlur}>
                 <input className='search-button' type='search' placeholder='Enter the name of the interlocutor...'
-                       onChange={handleSearch}/>
-                {isLoadingOrHidden ? null : <PseudoSelector foundUsers={foundUsers} currentuser={props.currentUser}
-                                                            setIsLoadingOrHidden={setIsLoadingOrHidden}
-                                                            setIsChoseNewDialogue={props.setIsChoseNewDialogue}/>}
+                       onChange={handleSearch} onFocus={handleSearch}/>
+                {isHidden ? null :
+                    <PseudoSelector foundUsers={isLoading ? [] : foundUsers} currentuser={props.currentUser}
+                                    users ={users}
+                                    setIsHidden={setIsHidden}
+                                    setIsChoseNewDialogue={props.setIsChoseNewDialogue}/>}
             </div>
         </div>
     )

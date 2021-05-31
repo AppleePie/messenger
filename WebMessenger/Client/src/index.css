@@ -282,6 +282,14 @@ code {
 
 }
 
+.chats-wrapper {
+    display: flex;
+}
+
+.chat-window {
+    width: 100%;
+    min-height: 950px;
+}
 
 
 
