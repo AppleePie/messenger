@@ -6,6 +6,7 @@ import {useHistory} from "react-router-dom";
 
 function Messenger(props) {
     const userUrl = '/api/users';
+    const defaultImage = "/icons/default-photo.jpg";
 
     const [chatObj, setChats] = useState([]);
     const [isLoading, setLoading] = useState(true);
@@ -21,12 +22,17 @@ function Messenger(props) {
             }
         }).then(r => r.json());
 
+    const getUserAvatar = async (id) => {
+        const response = await fetch(`${userUrl}/${id}/avatar`);
+        return response.status === 404 ? defaultImage : await response.text();
+    }
+
     const fetchChats = async (id) => {
         const chats = (await getUser(id)).chats;
         const res = [];
         for (const chat of chats) {
             const result = (await getUser(chat.interlocutor)).login;
-            const avatar = await fetch(`${userUrl}/${chat.interlocutor}/avatar`).then(r => r.text());
+            const avatar = await getUserAvatar(chat.interlocutor);
             const chatId = chat.id;
             res.push({chatId: chatId, avatar: avatar, login: result, interlocutor: chat.interlocutor});
         }

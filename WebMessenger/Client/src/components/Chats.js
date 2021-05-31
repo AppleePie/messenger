@@ -29,19 +29,21 @@ function Search(props) {
     const getUsers = async () => {
         const allUsers = await fetch(getAllUsersApi).then(r => r.json());
         const userDictionary = new Map();
-        allUsers.forEach((user) => userDictionary.set(user.login,user));
+        allUsers.forEach((user) => userDictionary.set(user.login, user));
         return userDictionary;
     }
 
     useEffect(() => {
         let isMounted = true;
         getUsers().then((r) => {
-            if(isMounted){
+            if (isMounted) {
                 setUsers(r);
                 setIsLoading(false);
             }
         });
-        return () => { isMounted = false };
+        return () => {
+            isMounted = false
+        };
     }, [])
 
     const getSuitableUsers = async (currUser, searchPattern) => {
@@ -81,7 +83,7 @@ function Search(props) {
                        onChange={handleSearch} onFocus={handleSearch}/>
                 {isHidden ? null :
                     <PseudoSelector foundUsers={isLoading ? [] : foundUsers} currentuser={props.currentUser}
-                                    users ={users}
+                                    users={users}
                                     setIsHidden={setIsHidden}
                                     setIsChoseNewDialogue={props.setIsChoseNewDialogue}/>}
             </div>

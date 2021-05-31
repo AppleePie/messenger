@@ -49,7 +49,7 @@ namespace Server.Controllers
             await repository.UpdateAsync(initiator);
             await repository.UpdateAsync(interlocutor);
 
-            return NoContent();
+            return Ok(chat.Id);
         }
 
         [HttpDelete("{chatId:guid}")]
