@@ -104,15 +104,18 @@ namespace Server.Controllers
         [HttpGet("{userId:guid}/avatar")]
         public async Task<IActionResult> GetUserAvatarAsync([FromRoute] Guid userId)
         {
-            await using var fileStream =
-                new FileStream(Path.Combine(uploadDirectory, userId.ToString()), FileMode.Open);
+            var filePath = Path.Combine(uploadDirectory, userId.ToString());
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+            
+            await using var fileStream = new FileStream(filePath, FileMode.Open);
             var buffer = new byte[fileStream.Length];
             await fileStream.ReadAsync(buffer);
             return Ok($"data:image/*;base64,{Convert.ToBase64String(buffer)}");
         }
 
         [HttpPost("{id:guid}/avatar")]
-        public async Task<IActionResult> AddUserAvatar([FromRoute] Guid id, [FromForm] IFormFileCollection uploads)
+        public async Task<IActionResult> ChangeUserAvatar([FromRoute] Guid id, [FromForm] IFormFileCollection uploads)
         {
             if (uploads.Count != 1)
                 return BadRequest("Avatar file collection should contains only one element!");

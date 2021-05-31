@@ -7,6 +7,7 @@ function PseudoSelector(props){
         props.setIsHidden(true);
         props.setIsChoseNewDialogue(true);
         props.users.delete(login);
+
         const response = await fetch('/api/chats', {
             method: 'POST',
             body: JSON.stringify({
