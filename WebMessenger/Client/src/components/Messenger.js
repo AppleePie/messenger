@@ -10,6 +10,10 @@ function Messenger(props) {
 
     const [chatObj, setChats] = useState([]);
     const [isLoading, setLoading] = useState(true);
+    const [currentUserAvatar, setCurrentUserAvatar] = useState('');
+    const [currentUserLogin, setCurrentUserLogin] = useState('')
+    const [currentChatId, setCurrentChatId] = useState('');
+    const [currentInterlocutor, setCurrentInterlocutor] = useState({login: '', avatar: '', interlocutor: ''});
     const history = useHistory();
 
     const getUser = async (id) =>
@@ -39,26 +43,52 @@ function Messenger(props) {
 
 
     useEffect(() => {
-        let isMounted = true;
         if (props.userId === '') {
             history.push('/login')
             return;
         }
+        getUser(props.userId).then(r => {
+            setCurrentUserLogin(r.login);
+        });
+        getUserAvatar(props.userId).then(r => {
+            setCurrentUserAvatar(r);
+        });
         fetchChats(props.userId).then(r => {
             setChats(r);
             setLoading(false);
         });
-        return () => {
-            isMounted = false
-        };
     }, []);
+
+    const renderChatWindow = () => {
+        return !Object.values(currentInterlocutor).includes('') ? (
+            <ChatWindow currentInterlocutor={currentInterlocutor}
+                        currentUserAvatar={currentUserAvatar}
+                        currentUserLogin={currentUserLogin}
+                        currentChatId={currentChatId}
+                        setCurrentChatId={setCurrentChatId}
+                        currentUser={props.userId}
+                        chatObj={chatObj}
+                        setChats={setChats}
+            />
+        ) : (
+            <div className='default-chat-window-message-wrapper'>
+                <p className='default-chat-window-message'>Please select a chat to start messaging</p>
+            </div>
+        );
+
+    }
 
 
     return (
         <div className='messenger-wrapper'>
             <Header/>
             <div className='chats-wrapper'>
-                <Chats chats={isLoading ? [] : chatObj} currentUser={props.userId} setChats={setChats}/>
+                <Chats chats={isLoading ? [] : chatObj}
+                       currentUser={props.userId}
+                       setCurrentInterlocutor={setCurrentInterlocutor}
+                       setCurrentChatId={setCurrentChatId}
+                />
+                {renderChatWindow()}
             </div>
         </div>
     )

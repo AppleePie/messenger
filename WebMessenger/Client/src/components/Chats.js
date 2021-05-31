@@ -5,8 +5,15 @@ import PseudoSelector from "./PseudoSelector";
 function Chats(props) {
     return (
         <div className='chats'>
-            <Search currentUser={props.currentUser} chats={props.chats} setChats={props.setChats}/>
-            <ChatScroll chats={props.chats}/>
+            <Search currentUser={props.currentUser}
+                    chats={props.chats}
+                    setCurrentInterlocutor={props.setCurrentInterlocutor}
+                    setCurrentChatId={props.setCurrentChatId}
+            />
+            <ChatScroll chats={props.chats}
+                        setCurrentInterlocutor={props.setCurrentInterlocutor}
+                        setCurrentChatId={props.setCurrentChatId}
+            />
         </div>
     );
 }
@@ -87,8 +94,8 @@ function Search(props) {
                                     currentuser={props.currentUser}
                                     users={users}
                                     setIsHidden={setIsHidden}
-                                    chats = {props.chats}
-                                    setChats = {props.setChats}
+                                    setCurrentInterlocutor = {props.setCurrentInterlocutor}
+                                    setCurrentChatId = {props.setCurrentChatId}
                     />}
             </div>
         </div>
@@ -98,10 +105,15 @@ function Search(props) {
 
 function ChatScroll(props) {
 
+    const handleClick = (chat) => {
+        props.setCurrentInterlocutor({login:chat.login, interlocutor:chat.interlocutor,avatar: chat.avatar});
+        props.setCurrentChatId(chat.id);
+    }
+
     const renderChat = (chat) => {
         return (
             <li className='chat-element' key={chat.interlocutor}>
-                <div className='chat-info-wrapper'>
+                <div className='chat-info-wrapper' onClick={() => handleClick(chat)}>
                     <img className='chat-avatar-preview' src={chat.avatar} alt='avatar'/>
                     <p>{chat.login}</p>
                 </div>

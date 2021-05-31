@@ -185,7 +185,12 @@ code {
 .chats {
     max-width: 360px;
     display: block;
-    margin: 10px;
+    margin-left: 400px;
+    background-color: white;
+    box-shadow: 0px 4px 40px 0px rgba(34, 60, 80, 0.2);
+    border-left: 2px solid whitesmoke;
+    border-right: 2px solid whitesmoke;
+
 }
 
 .search-button {
@@ -195,7 +200,6 @@ code {
     display: block;
     min-width: 360px;
     min-height: 36px;
-    border-radius: 15px;
     padding-left: 40px;
     background-color: whitesmoke;
 }
@@ -284,16 +288,90 @@ code {
 
 .chats-wrapper {
     display: flex;
+    background-color: whitesmoke;
 }
 
 .chat-window {
+    width: 800px;
+    min-height: 950px;
+    background-color: white;
+}
+
+.default-chat-window-message {
+    font: 25px Tahoma, sans-serif, Arial, Helvetica;
+    color: grey;
+    margin: 0 auto;
+}
+
+.default-chat-window-message-wrapper {
     width: 100%;
     min-height: 950px;
+    display: flex;
+    align-items: center;
+}
+
+.messages-wrapper {
+    min-width: 100%;
+    min-height: 750px;
+    display: flex;
 }
 
 
+.message-panel {
+    display: flex;
+}
 
+.chat-under-avatar-text {
+    text-align: center;
+    font: 15px Tahoma, sans-serif, Arial, Helvetica;
+    color: black;
 
+}
+
+.user-chat-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+}
+
+.user-chat-avatar {
+    margin-top: 15px;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 1px solid gray;
+    background-size: cover;
+}
+
+.input-message-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-send-message {
+    outline: none;
+    border: none;
+    min-width: 430px;
+    padding-bottom: 80px;
+    border-bottom: 1px solid #5682a3;
+
+}
+
+.input-send-message:focus {
+    background-color: whitesmoke;
+}
+
+.send-message-button {
+    margin-top: 10px;
+    align-self: flex-end;
+    font: 17px Tahoma, sans-serif, Arial, Helvetica;
+    padding: 10px;
+    background-color: #5682a3;
+}
+
+.send-message-button:hover {
+    background-color: #3e5f79;
+}
 
 
 

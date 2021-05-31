@@ -54,7 +54,6 @@ function RegistrationPage(props) {
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (!Object.values(userObj).includes('')) {
-
             const created = await fetch(postUser, {
                 method: 'POST',
                 body: JSON.stringify(userObj),
