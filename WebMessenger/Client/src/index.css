@@ -119,6 +119,13 @@ code {
     align-items: center;
 }
 
+.form-account {
+    margin: 0 auto;
+    display: flex;
+    border-radius: 10px;
+    background-color: white;
+}
+
 .form-wrapper, .login-form-wrapper {
     margin: 0 auto;
     display: flex;
@@ -185,7 +192,12 @@ code {
 .chats {
     max-width: 360px;
     display: block;
-    margin: 10px;
+    margin-left: 400px;
+    background-color: white;
+    box-shadow: 0px 4px 40px 0px rgba(34, 60, 80, 0.2);
+    border-left: 2px solid whitesmoke;
+    border-right: 2px solid whitesmoke;
+
 }
 
 .search-button {
@@ -195,7 +207,6 @@ code {
     display: block;
     min-width: 360px;
     min-height: 36px;
-    border-radius: 15px;
     padding-left: 40px;
     background-color: whitesmoke;
 }
@@ -260,9 +271,159 @@ code {
 }
 
 
+.pseudoSelector {
+    display: flex;
+    flex-direction: column-reverse;
+    position: absolute;
+}
+
+.found-user {
+    outline: none;
+    min-width: 360px;
+    min-height: 36px;
+    text-align: center;
+    border-radius: 10px;
+    margin: 2px 0 2px 0;
+    border: none;
+}
+
+.found-user:hover {
+    background-color: grey;
+    font: 17px Tahoma, sans-serif, Arial, Helvetica;
+
+}
+
+.chats-wrapper {
+    display: flex;
+    background-color: whitesmoke;
+}
+
+.chat-window {
+    width: 800px;
+    min-height: 700px;
+    background-color: white;
+}
+
+.default-chat-window-message {
+    font: 25px Tahoma, sans-serif, Arial, Helvetica;
+    color: grey;
+    margin: 0 auto;
+}
+
+.default-chat-window-message-wrapper {
+    width: 100%;
+    min-height: 880px;
+    display: flex;
+    align-items: center;
+}
+
+.messages-wrapper {
+    min-width: 100%;
+    min-height: 690px;
+    max-height: 690px;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.my-message, .interlocutor-message {
+    border-radius: 10px;
+    display: flex;
+    padding: 15px;
+    font: 14px Tahoma, sans-serif, Arial, Helvetica;
+    outline: none;
+    border:none;
+    wrap-option: whereany;
+}
+
+.my-message {
+    align-self: start;
+    margin-left: 30px;
+    margin-right: 200px;
+    text-align: left;
+    background-color: whitesmoke;
+}
 
 
 
+.interlocutor-message {
+    align-self: end;
+    text-align: right;
+    margin-left: 200px;
+    margin-right: 30px;
+    background-color: #75a2c4;
+}
 
 
+.message-panel {
+    display: flex;
+}
 
+.chat-under-avatar-text {
+    text-align: center;
+    font: 15px Tahoma, sans-serif, Arial, Helvetica;
+    color: black;
+
+}
+
+.user-chat-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+}
+
+.user-chat-avatar {
+    margin-top: 15px;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 1px solid gray;
+    background-size: cover;
+}
+
+.input-message-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-send-message {
+    outline: none;
+    border: none;
+    min-width: 430px;
+    padding-bottom: 80px;
+    border-bottom: 1px solid #5682a3;
+
+}
+
+.input-send-message:focus {
+    background-color: whitesmoke;
+}
+
+.send-message-button {
+    margin-top: 10px;
+    align-self: flex-end;
+    font: 17px Tahoma, sans-serif, Arial, Helvetica;
+    padding: 10px;
+    background-color: #5682a3;
+}
+
+.send-message-button:hover {
+    background-color: #3e5f79;
+}
+
+.delete-chat-button {
+    float: right;
+    outline: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.account-manager-wrapper {
+    position: absolute;
+    width: 400px;
+    height: 100%;
+    background: white;
+}

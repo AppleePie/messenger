@@ -1,13 +1,79 @@
+import {useEffect, useState} from "react";
+import PseudoSelector from "./PseudoSelector";
+
+
 function Chats(props) {
     return (
         <div className='chats'>
-            <Search/>
-            <ChatScroll chats={props.chats}/>
+            <Search currentUser={props.currentUser}
+                    chats={props.chats}
+                    setCurrentInterlocutor={props.setCurrentInterlocutor}
+                    setCurrentChatId={props.setCurrentChatId}
+                    setCurrentMessages={props.setCurrentMessages}
+            />
+            <ChatScroll chats={props.chats}
+                        setChats={props.setChats}
+                        setCurrentInterlocutor={props.setCurrentInterlocutor}
+                        setCurrentChatId={props.setCurrentChatId}
+                        setCurrentMessages={props.setCurrentMessages}
+            />
         </div>
     );
 }
 
-function Search() {
+function Search(props) {
+
+    const getAllUsersApi = '/api/users'
+
+    const [isHidden, setIsHidden] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
+    const [users, setUsers] = useState(new Map());
+    const [foundUsers, setFoundUsers] = useState([]);
+
+
+    const checkUserHaveChat = (user) => {
+        return !(user.chats.some(chat => chat.interlocutor === props.currentUser));
+    }
+
+
+    const getUsers = async () => {
+        const allUsers = await fetch(getAllUsersApi).then(r => r.json());
+        const userDictionary = new Map();
+        allUsers.forEach((user) => userDictionary.set(user.login, user));
+        return userDictionary;
+    }
+
+    useEffect(() => {
+        let isMounted = true;
+        getUsers().then((r) => {
+            if (isMounted) {
+                setUsers(r);
+                setIsLoading(false);
+            }
+        });
+        return () => {
+            isMounted = false
+        };
+    }, [])
+
+    const getSuitableUsers = async (currUser, searchPattern) => {
+        const userArray = Array.from(users.values());
+        return userArray.filter((userObj) => userObj.id !== props.currentUser
+            && userObj.login.toLowerCase().startsWith(searchPattern.toLowerCase())
+            && checkUserHaveChat(userObj));
+    }
+
+    const handleSearch = (event) => {
+        if (!isLoading) {
+            props.setCurrentMessages([]);
+            getSuitableUsers(props.currentUser, event.target.value).then(r => {
+                setFoundUsers(r);
+                setIsHidden(false);
+            });
+        }
+    }
+
+
     const loupe = (
         <svg className="search-loupe" width="19" height="19" viewBox="0 0 19 19" fill="none"
              xmlns="http://www.w3.org/2000/svg">
@@ -16,22 +82,61 @@ function Search() {
                 fill="black"/>
         </svg>
     );
+
+    const handleBlur = (event) => {
+        if (event === undefined || event.relatedTarget === null || event.relatedTarget.className !== 'found-user') {
+            setIsHidden(true);
+        }
+    }
+
     return (
         <div>
             {loupe}
-            <input className='search-button' type='search' placeholder='Enter the name of the interlocutor...'/>
+            <div onBlur={handleBlur}>
+                <input
+                    className='search-button'
+                    type='search'
+                    placeholder='Enter the name of the interlocutor...'
+                    onChange={handleSearch}
+                    onFocus={handleSearch}
+                />
+                {isHidden ? null :
+                    <PseudoSelector foundUsers={isLoading ? [] : foundUsers}
+                                    currentuser={props.currentUser}
+                                    users={users}
+                                    setIsHidden={setIsHidden}
+                                    setCurrentInterlocutor={props.setCurrentInterlocutor}
+                                    setCurrentChatId={props.setCurrentChatId}
+                    />}
+            </div>
         </div>
     )
-
 }
 
 
 function ChatScroll(props) {
 
+    const handleClick = async (chat) => {
+        props.setCurrentInterlocutor({login: chat.login, interlocutor: chat.interlocutor, avatar: chat.avatar});
+        props.setCurrentChatId(chat.chatId);
+        const currentChat = await fetch(`/api/chats/${chat.chatId}`).then(r => r.json());
+        props.setCurrentMessages(currentChat.messages);
+    }
+
     const renderChat = (chat) => {
         return (
             <li className='chat-element' key={chat.interlocutor}>
-                <div className='chat-info-wrapper'>
+                <button className="delete-chat-button" onClick={async () => {
+                    // delete props.chats[chat.chatId];
+                    // props.setChats(props.chats);
+                    // props.setCurrentInterlocutor({login: '', avatar: '', interlocutor: ''});
+                    // props.setCurrentMessages([]);
+                    await fetch(`/api/messages/${chat.chatId}`, {method: 'DELETE'});
+                    await fetch(`/api/chats/${chat.chatId}`, {method: 'DELETE'});
+                }}>
+                    ❌
+                </button>
+                <div className='chat-info-wrapper' onClick={() => handleClick(chat)}>
                     <img className='chat-avatar-preview' src={chat.avatar} alt='avatar'/>
                     <p>{chat.login}</p>
                 </div>
@@ -42,7 +147,7 @@ function ChatScroll(props) {
     return (
         <div className='chat-scroll-wrapper'>
             <ul className='chat-scroll'>
-                {props.chats.map(renderChat)}
+                {Object.values(props.chats).map(renderChat)}
             </ul>
         </div>
     )

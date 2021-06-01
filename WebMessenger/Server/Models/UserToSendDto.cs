@@ -7,6 +7,6 @@ namespace Server.Models
     {
         public Guid Id { get; set; }
         public string Login { get; set; }
-        public List<ChatToSendDto> Chats { get; set; }
+        public List<ChatForUser> Chats { get; set; }
     }
 }

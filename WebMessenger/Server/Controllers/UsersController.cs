@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -28,6 +30,11 @@ namespace Server.Controllers
             uploadDirectory = uploadDirectoryName;
         }
 
+        [HttpGet]
+        [Produces("application/json")]
+        public IActionResult GetUsers() =>
+            Ok(repository.GetUsers().Select(u => mapper.Map<UserToSendDto>(u)).ToList());
+
         [HttpGet("{id:guid}", Name = nameof(GetUserByIdAsync))]
         [Produces("application/json")]
         public async Task<IActionResult> GetUserByIdAsync([FromRoute] Guid id)
@@ -54,7 +61,6 @@ namespace Server.Controllers
         }
 
         [HttpPost]
-        [Produces("application/json")]
         public async Task<IActionResult> CreateUserAsync([FromBody] UserToCreateDto user)
         {
             if (user is null)
@@ -72,9 +78,44 @@ namespace Server.Controllers
             return CreatedAtRoute(nameof(GetUserByIdAsync), new {id = insertedUser.Id}, insertedUser.Id);
         }
 
+        [HttpPut("{userId:guid}")]
+        public async Task<IActionResult> UpdateUserAsync([FromRoute] Guid userId, [FromBody] UserToUpdateDto userToUpdate)
+        {
+            if (userToUpdate is null)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(ModelState);
+
+            var user = await repository.FindByIdAsync<User>(userId);
+            if (user == null)
+                return Conflict("User with this username not exists!");
+            if (!string.IsNullOrEmpty(userToUpdate.Login) && await repository.FindByLoginAsync(userToUpdate.Login) != null)
+                return Conflict("User with this username already exists");
+            user.Login = !string.IsNullOrEmpty(userToUpdate.Login) ? userToUpdate.Login : user.Login;
+            user.Password = !string.IsNullOrEmpty(userToUpdate.Password) ? userToUpdate.Password : user.Password;
+            await repository.UpdateAsync(user);
+            return Ok(user.Id);
+        }
+        
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteUserById([FromRoute] Guid id)
         {
+            var user = await repository.FindByIdAsync<User>(id);
+            var removingIds = new List<Guid>();
+            foreach (var chat in user.UserToChats.Select(userToChat => userToChat.Chat))
+            {
+                foreach (var interlocutor in chat.UserToChats.Select(uc => uc.User).Where(u => u.Id != id))
+                {
+                    var idStart = interlocutor.RelationsWithChats.IndexOf(chat.Id.ToString(), StringComparison.Ordinal);
+                    interlocutor.RelationsWithChats = interlocutor.RelationsWithChats.Remove(idStart, chat.Id.ToString().Length);
+                    removingIds.Add(chat.Id);
+                    await repository.UpdateAsync(interlocutor);
+                }
+            }
+            
+            removingIds.ForEach(async (i) => await repository.DeleteAsync<Chat>(i));
+            
             await repository.DeleteAsync<User>(id);
             return NoContent();
         }
@@ -82,44 +123,27 @@ namespace Server.Controllers
         [HttpGet("{userId:guid}/avatar")]
         public async Task<IActionResult> GetUserAvatarAsync([FromRoute] Guid userId)
         {
-            await using var fileStream = new FileStream(Path.Combine(uploadDirectory, userId.ToString()), FileMode.Open);
+            var filePath = Path.Combine(uploadDirectory, userId.ToString());
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+            
+            await using var fileStream = new FileStream(filePath, FileMode.Open);
             var buffer = new byte[fileStream.Length];
             await fileStream.ReadAsync(buffer);
             return Ok($"data:image/*;base64,{Convert.ToBase64String(buffer)}");
         }
 
         [HttpPost("{id:guid}/avatar")]
-        public async Task<IActionResult> AddUserAvatar([FromRoute] Guid id, IFormFileCollection uploads)
+        public async Task<IActionResult> ChangeUserAvatar([FromRoute] Guid id, [FromForm] IFormFileCollection uploads)
         {
             if (uploads.Count != 1)
                 return BadRequest("Avatar file collection should contains only one element!");
 
             var uploadedFile = uploads[0];
-            var path = Path.Combine(uploadDirectory, id.ToString());
-            await using var fileStream = new FileStream(path, FileMode.Create);
+            var filePath = id.ToString();
+            var path = Path.Combine(uploadDirectory, filePath);
+            await using var fileStream = new FileStream(path, FileMode.OpenOrCreate);
             await uploadedFile.CopyToAsync(fileStream);
-
-            return NoContent();
-        }
-
-        [HttpPost("users/new-chat")]
-        public async Task<IActionResult> CreateChat([FromBody] ChatToCreateDto newChat)
-        {
-            if (newChat is null)
-                return BadRequest();
-            var initiator = await repository.FindByIdAsync<User>(newChat.InitiatorId);
-            var interlocutor = await repository.FindByLoginAsync(newChat.InterlocutorName);
-            var chat = new Chat();
-            var chat1 = new UserToChat {User = initiator, Chat = chat};
-            var chat2 = new UserToChat {User = interlocutor, Chat = chat};
-            await repository.InsertAsync(chat1);
-            await repository.InsertAsync(chat2);
-
-            initiator.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
-            interlocutor.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
-
-            await repository.UpdateAsync(initiator);
-            await repository.UpdateAsync(interlocutor);
 
             return NoContent();
         }

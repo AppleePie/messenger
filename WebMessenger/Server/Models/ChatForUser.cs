@@ -2,7 +2,7 @@
 
 namespace Server.Models
 {
-    public class ChatToSendDto
+    public class ChatForUser
     {
         public Guid Id { get; set; }
 
