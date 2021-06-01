@@ -58,8 +58,9 @@ function ChatWindow(props) {
     }
 
     const renderMessage = (message) => {
+        console.log(message);
         return (
-            <p className={message.initiator === props.currentUser ? 'my-message' : 'interlocutor-message'} key={message.message}>{message.message}</p>
+            <p className={message.initiator === props.currentUser ? 'my-message' : 'interlocutor-message'} key={message.id}>{message.message}</p>
         )
     }
 
