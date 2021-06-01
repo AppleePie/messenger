@@ -9,10 +9,13 @@ function Chats(props) {
                     chats={props.chats}
                     setCurrentInterlocutor={props.setCurrentInterlocutor}
                     setCurrentChatId={props.setCurrentChatId}
+                    setCurrentMessages={props.setCurrentMessages}
             />
             <ChatScroll chats={props.chats}
+                        setChats={props.setChats}
                         setCurrentInterlocutor={props.setCurrentInterlocutor}
                         setCurrentChatId={props.setCurrentChatId}
+                        setCurrentMessages={props.setCurrentMessages}
             />
         </div>
     );
@@ -61,10 +64,13 @@ function Search(props) {
     }
 
     const handleSearch = (event) => {
-        if (!isLoading) getSuitableUsers(props.currentUser, event.target.value).then(r => {
-            setFoundUsers(r);
-            setIsHidden(false);
-        });
+        if (!isLoading) {
+            props.setCurrentMessages([]);
+            getSuitableUsers(props.currentUser, event.target.value).then(r => {
+                setFoundUsers(r);
+                setIsHidden(false);
+            });
+        }
     }
 
 
@@ -87,15 +93,20 @@ function Search(props) {
         <div>
             {loupe}
             <div onBlur={handleBlur}>
-                <input className='search-button' type='search' placeholder='Enter the name of the interlocutor...'
-                       onChange={handleSearch} onFocus={handleSearch}/>
+                <input
+                    className='search-button'
+                    type='search'
+                    placeholder='Enter the name of the interlocutor...'
+                    onChange={handleSearch}
+                    onFocus={handleSearch}
+                />
                 {isHidden ? null :
                     <PseudoSelector foundUsers={isLoading ? [] : foundUsers}
                                     currentuser={props.currentUser}
                                     users={users}
                                     setIsHidden={setIsHidden}
-                                    setCurrentInterlocutor = {props.setCurrentInterlocutor}
-                                    setCurrentChatId = {props.setCurrentChatId}
+                                    setCurrentInterlocutor={props.setCurrentInterlocutor}
+                                    setCurrentChatId={props.setCurrentChatId}
                     />}
             </div>
         </div>
@@ -105,14 +116,25 @@ function Search(props) {
 
 function ChatScroll(props) {
 
-    const handleClick = (chat) => {
-        props.setCurrentInterlocutor({login:chat.login, interlocutor:chat.interlocutor,avatar: chat.avatar});
-        props.setCurrentChatId(chat.id);
+    const handleClick = async (chat) => {
+        props.setCurrentInterlocutor({login: chat.login, interlocutor: chat.interlocutor, avatar: chat.avatar});
+        props.setCurrentChatId(chat.chatId);
+        const currentChat = await fetch(`/api/chats/${chat.chatId}`).then(r => r.json());
+        props.setCurrentMessages(currentChat.messages);
     }
 
     const renderChat = (chat) => {
         return (
             <li className='chat-element' key={chat.interlocutor}>
+                <button className="delete-chat-button" onClick={() => {
+                    delete props.chats[chat.chatId];
+                    props.setChats(props.chats);
+                    props.setCurrentInterlocutor({login: '', avatar: '', interlocutor: ''});
+                    props.setCurrentMessages([]);
+                    fetch(`/api/chats/${chat.chatId}`, {method: 'DELETE'});
+                }}>
+                    ❌
+                </button>
                 <div className='chat-info-wrapper' onClick={() => handleClick(chat)}>
                     <img className='chat-avatar-preview' src={chat.avatar} alt='avatar'/>
                     <p>{chat.login}</p>
@@ -124,7 +146,7 @@ function ChatScroll(props) {
     return (
         <div className='chat-scroll-wrapper'>
             <ul className='chat-scroll'>
-                {props.chats.map(renderChat)}
+                {Object.values(props.chats).map(renderChat)}
             </ul>
         </div>
     )

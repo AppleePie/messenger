@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 function ChatWindow(props) {
 
@@ -22,7 +22,7 @@ function ChatWindow(props) {
 
 
     const sendMessage = async () => {
-        await fetch('/Chat/messages', {
+        await fetch(`/api/messages/${props.currentChatId}`, {
             method: 'POST',
             body: JSON.stringify({
                 initiator: props.currentUser,
@@ -45,7 +45,7 @@ function ChatWindow(props) {
             const response = await postChat().then(r => r.json());
             props.currentInterlocutor.scroll.delete(props.currentInterlocutor.login);
             props.setCurrentChatId(response);
-            const currentChats = props.chatObj.slice();
+            const currentChats = Object.values(props.chatObj).slice();
             currentChats.push({
                 chatId: response,
                 avatar: props.currentInterlocutor.avatar,
@@ -67,6 +67,7 @@ function ChatWindow(props) {
     return (
         <div className='chat-window'>
             <div className='messages-wrapper'>
+                {props.currentMessages.map(renderMessage)}
             </div>
             <div className='message-panel'>
                 <div className='user-chat-wrapper'>

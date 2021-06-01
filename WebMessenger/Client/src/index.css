@@ -382,6 +382,13 @@ code {
     background-color: #3e5f79;
 }
 
+.delete-chat-button {
+    float: right;
+    outline: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
 
 
 

@@ -40,7 +40,6 @@ namespace Server.Controllers
             var chat = new Chat();
             var chat1 = new UserToChat {User = initiator, Chat = chat};
             var chat2 = new UserToChat {User = interlocutor, Chat = chat};
-            Console.WriteLine(newChat.InitiatorId + " " + newChat.InterlocutorName);
             await repository.InsertAsync(chat1);
             await repository.InsertAsync(chat2);
 

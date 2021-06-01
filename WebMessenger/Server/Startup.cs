@@ -62,10 +62,11 @@ namespace Server
                         )
                         .ForMember(c => c.Messages,
                             options => options.MapFrom(chat =>
-                                chat.ChatToMessages.Select(x => new MessageToSend
+                                chat.ChatToMessages.Select(x => new ChatMessage
                                 {
-                                    UserId = x.Message.UserToMessage.UserId,
-                                    Content = x.Message.Content
+                                    Initiator = x.Message.UserToMessage.UserId,
+                                    Interlocutor = x.Chat.UserToChats.First(u => u.UserId != x.Message.UserToMessage.UserId).UserId,
+                                    Message = x.Message.Content
                                 }).ToList()
                             )
                         ); 

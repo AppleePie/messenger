@@ -8,7 +8,7 @@ using Server.Models;
 
 namespace Server.Controllers
 {
-    [Route("api/messages")]
+    [Route("api/messages/{chatId:guid}")]
     public class MessageController : Controller
     {
         private readonly IHubContext<ChatHub, IChatClient> chatHub;
@@ -20,14 +20,24 @@ namespace Server.Controllers
             this.repository = repository;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllMessages([FromRoute] Guid chatId)
+        {
+            var chat = await repository.FindByIdAsync<Chat>(chatId);
+            if (chat is null)
+                return NotFound();
+
+            return Ok(chat);
+        }
+
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ChatMessage message)
+        public async Task<IActionResult> Post([FromRoute] Guid chatId, [FromBody] ChatMessage message)
         {
             await chatHub.Clients.Group(message.Initiator.ToString()).ReceiveMessage(message);
             await chatHub.Clients.Group(message.Interlocutor.ToString()).ReceiveMessage(message);
 
             var owner = await repository.FindByIdAsync<User>(message.Initiator);
-            var chat = await repository.FindByIdAsync<Chat>(message.ChatId);
+            var chat = await repository.FindByIdAsync<Chat>(chatId);
             
             var newMessage = new Message {Content = message.Message};
             var userToMessage = new UserToMessage { Message = newMessage, User = owner};

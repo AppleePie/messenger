@@ -9,13 +9,13 @@ function Messenger(props) {
     const userUrl = '/api/users';
     const defaultImage = "/icons/default-photo.jpg";
 
-    const [chatObj, setChats] = useState([]);
+    const [chatObj, setChats] = useState({});
     const [isLoading, setLoading] = useState(true);
     const [currentUserAvatar, setCurrentUserAvatar] = useState('');
     const [currentUserLogin, setCurrentUserLogin] = useState('');
     const [currentChatId, setCurrentChatId] = useState('');
     const [currentInterlocutor, setCurrentInterlocutor] = useState({login: '', avatar: '', interlocutor: ''});
-    const [currentMessages,setCurrentMessages] = useState([]);
+    const [currentMessages, setCurrentMessages] = useState([]);
     const history = useHistory();
 
     const getUser = async (id) =>
@@ -33,23 +33,21 @@ function Messenger(props) {
 
     const fetchChats = async (id) => {
         const chats = (await getUser(id)).chats;
-        const res = [];
+        const res = {};
         for (const chat of chats) {
             const result = (await getUser(chat.interlocutor)).login;
             const avatar = await getUserAvatar(chat.interlocutor);
             const chatId = chat.id;
-            res.push({chatId: chatId, avatar: avatar, login: result, interlocutor: chat.interlocutor});
+            res[chat.id] = {chatId: chatId, avatar: avatar, login: result, interlocutor: chat.interlocutor};
         }
         return res;
     }
 
     const pushMessage = useCallback(message => {
-        const messages = currentMessages.slice();
+        const messages = currentMessages;
         messages.push(message);
-        console.log(messages);
-        setCurrentMessages(messages);
-        console.log(currentMessages);
-    }, [])
+        setCurrentMessages(messages.slice());
+    }, [currentMessages])
 
 
     useEffect(() => {
@@ -111,9 +109,11 @@ function Messenger(props) {
             <Header/>
             <div className='chats-wrapper'>
                 <Chats chats={isLoading ? [] : chatObj}
+                       setChats={setChats}
                        currentUser={props.userId}
                        setCurrentInterlocutor={setCurrentInterlocutor}
                        setCurrentChatId={setCurrentChatId}
+                       setCurrentMessages={setCurrentMessages}
                 />
                 {renderChatWindow()}
             </div>
