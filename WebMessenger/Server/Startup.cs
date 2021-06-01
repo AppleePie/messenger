@@ -64,6 +64,7 @@ namespace Server
                             options => options.MapFrom(chat =>
                                 chat.ChatToMessages.Select(x => new ChatMessage
                                 {
+                                    Id = x.MessageId,
                                     Initiator = x.Message.UserToMessage.UserId,
                                     Interlocutor = x.Chat.UserToChats.First(u => u.UserId != x.Message.UserToMessage.UserId).UserId,
                                     Message = x.Message.Content
