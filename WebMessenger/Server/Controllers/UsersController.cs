@@ -61,7 +61,6 @@ namespace Server.Controllers
         }
 
         [HttpPost]
-        [Produces("application/json")]
         public async Task<IActionResult> CreateUserAsync([FromBody] UserToCreateDto user)
         {
             if (user is null)
@@ -79,6 +78,26 @@ namespace Server.Controllers
             return CreatedAtRoute(nameof(GetUserByIdAsync), new {id = insertedUser.Id}, insertedUser.Id);
         }
 
+        [HttpPut("{userId:guid}")]
+        public async Task<IActionResult> UpdateUserAsync([FromRoute] Guid userId, [FromBody] UserToUpdateDto userToUpdate)
+        {
+            if (userToUpdate is null)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(ModelState);
+
+            var user = await repository.FindByIdAsync<User>(userId);
+            if (user == null)
+                return Conflict("User with this username not exists!");
+            if (!string.IsNullOrEmpty(userToUpdate.Login) && await repository.FindByLoginAsync(userToUpdate.Login) != null)
+                return Conflict("User with this username already exists");
+            user.Login = !string.IsNullOrEmpty(userToUpdate.Login) ? userToUpdate.Login : user.Login;
+            user.Password = !string.IsNullOrEmpty(userToUpdate.Password) ? userToUpdate.Password : user.Password;
+            await repository.UpdateAsync(user);
+            return Ok(user.Id);
+        }
+        
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteUserById([FromRoute] Guid id)
         {
@@ -121,8 +140,9 @@ namespace Server.Controllers
                 return BadRequest("Avatar file collection should contains only one element!");
 
             var uploadedFile = uploads[0];
-            var path = Path.Combine(uploadDirectory, id.ToString());
-            await using var fileStream = new FileStream(path, FileMode.Create);
+            var filePath = id.ToString();
+            var path = Path.Combine(uploadDirectory, filePath);
+            await using var fileStream = new FileStream(path, FileMode.OpenOrCreate);
             await uploadedFile.CopyToAsync(fileStream);
 
             return NoContent();

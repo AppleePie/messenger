@@ -3,6 +3,7 @@ import Chats from "./Chats";
 import ChatWindow from "./ChatWindow";
 import {useHistory} from "react-router-dom";
 import {HubConnectionBuilder} from "@microsoft/signalr";
+import AccountManager from "./AccountManager";
 
 
 function Messenger(props) {
@@ -106,7 +107,7 @@ function Messenger(props) {
 
     return (
         <div className='messenger-wrapper'>
-            <Header/>
+            <Header userId={props.userId} login={currentUserLogin} avatar={currentUserAvatar} setLogin={setCurrentUserLogin}/>
             <div className='chats-wrapper'>
                 <Chats chats={isLoading ? [] : chatObj}
                        setChats={setChats}
@@ -121,12 +122,17 @@ function Messenger(props) {
     )
 }
 
-function Header() {
+function Header(props) {
+    const [showAccountManager, setShowAccountManager] = useState(false);
+
     return (
-        <div className='messenger-header'>
-            <button className='header-button'>☰</button>
-            <b className='messenger-title'>OOP Task5</b>
-        </div>
+        <>
+            <div className='messenger-header'>
+                <button className='header-button' onClick={() => setShowAccountManager(!showAccountManager)}>☰</button>
+                <b className='messenger-title'>OOP Task5</b>
+            </div>
+            {showAccountManager ? <AccountManager userId={props.userId} login={props.login} setLogin={props.setLogin} avatar={props.avatar} /> : null}
+        </>
     )
 }
 
