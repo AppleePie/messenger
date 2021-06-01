@@ -126,12 +126,13 @@ function ChatScroll(props) {
     const renderChat = (chat) => {
         return (
             <li className='chat-element' key={chat.interlocutor}>
-                <button className="delete-chat-button" onClick={() => {
-                    delete props.chats[chat.chatId];
-                    props.setChats(props.chats);
-                    props.setCurrentInterlocutor({login: '', avatar: '', interlocutor: ''});
-                    props.setCurrentMessages([]);
-                    fetch(`/api/chats/${chat.chatId}`, {method: 'DELETE'});
+                <button className="delete-chat-button" onClick={async () => {
+                    // delete props.chats[chat.chatId];
+                    // props.setChats(props.chats);
+                    // props.setCurrentInterlocutor({login: '', avatar: '', interlocutor: ''});
+                    // props.setCurrentMessages([]);
+                    await fetch(`/api/messages/${chat.chatId}`, {method: 'DELETE'});
+                    await fetch(`/api/chats/${chat.chatId}`, {method: 'DELETE'});
                 }}>
                     ❌
                 </button>

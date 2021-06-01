@@ -69,7 +69,13 @@ function Messenger(props) {
             })
             .catch(e => e);
 
-        connection.on('ReceiveMessage',pushMessage);
+        connection.on('ReceiveMessage', pushMessage);
+        connection.on('DeleteChat', async (chatId) => {
+            delete chatObj[chatId];
+            setChats(chatObj);
+            setCurrentInterlocutor({login: '', avatar: '', interlocutor: ''});
+            setCurrentMessages([]);
+        });
 
         getUser(props.userId).then(r => {
             setCurrentUserLogin(r.login);
@@ -107,7 +113,8 @@ function Messenger(props) {
 
     return (
         <div className='messenger-wrapper'>
-            <Header userId={props.userId} login={currentUserLogin} avatar={currentUserAvatar} setLogin={setCurrentUserLogin}/>
+            <Header userId={props.userId} login={currentUserLogin} avatar={currentUserAvatar}
+                    setLogin={setCurrentUserLogin}/>
             <div className='chats-wrapper'>
                 <Chats chats={isLoading ? [] : chatObj}
                        setChats={setChats}
@@ -131,7 +138,8 @@ function Header(props) {
                 <button className='header-button' onClick={() => setShowAccountManager(!showAccountManager)}>☰</button>
                 <b className='messenger-title'>OOP Task5</b>
             </div>
-            {showAccountManager ? <AccountManager userId={props.userId} login={props.login} setLogin={props.setLogin} avatar={props.avatar} /> : null}
+            {showAccountManager ? <AccountManager userId={props.userId} login={props.login} setLogin={props.setLogin}
+                                                  avatar={props.avatar}/> : null}
         </>
     )
 }

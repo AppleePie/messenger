@@ -38,15 +38,27 @@ namespace Server.Controllers
 
             var owner = await repository.FindByIdAsync<User>(message.Initiator);
             var chat = await repository.FindByIdAsync<Chat>(chatId);
-            
+
             var newMessage = new Message {Content = message.Message};
-            var userToMessage = new UserToMessage { Message = newMessage, User = owner};
-            var chatToMessage = new ChatToMessage { Message = newMessage, Chat = chat};
-            
+            var userToMessage = new UserToMessage {Message = newMessage, User = owner};
+            var chatToMessage = new ChatToMessage {Message = newMessage, Chat = chat};
+
             await repository.InsertAsync(userToMessage);
             await repository.InsertAsync(chatToMessage);
 
             return Ok(newMessage.Id);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteChat([FromRoute] Guid chatId)
+        {
+            var chat = await repository.FindByIdAsync<Chat>(chatId);
+            chat.UserToChats.ForEach(async (uc) =>
+            {
+                await chatHub.Clients.Group(uc.UserId.ToString()).DeleteChat();
+                await chatHub.Clients.Group(uc.UserId.ToString()).DeleteChat();
+            });
+            return NoContent();
         }
     }
 }
