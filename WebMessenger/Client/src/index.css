@@ -300,7 +300,7 @@ code {
 
 .chat-window {
     width: 800px;
-    min-height: 950px;
+    min-height: 700px;
     background-color: white;
 }
 
@@ -312,47 +312,24 @@ code {
 
 .default-chat-window-message-wrapper {
     width: 100%;
-    min-height: 950px;
+    min-height: 880px;
     display: flex;
     align-items: center;
 }
 
 .messages-wrapper {
     min-width: 100%;
-    min-height: 750px;
-    max-height: 750px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    min-height: 690px;
     display: flex;
     flex-direction: column;
-    scrollbar-width: thin;
-}
-
-.my-message, .interlocutor-message {
-    border-radius: 10px;
-    display: flex;
-    padding: 15px;
-    font: 14px Tahoma, sans-serif, Arial, Helvetica;
-    outline: none;
-    border:none;
-    wrap-option: whereany;
 }
 
 .my-message {
     align-self: start;
-    margin-left: 30px;
-    margin-right: 200px;
-    text-align: left;
-    background-color: whitesmoke;
 }
-
 
 .interlocutor-message {
     align-self: end;
-    text-align: right;
-    margin-left: 200px;
-    margin-right: 30px;
-    background-color: #75a2c4;
 }
 
 
