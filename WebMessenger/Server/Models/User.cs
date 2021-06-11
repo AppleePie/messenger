@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 
 namespace Server.Models
 {
@@ -12,17 +10,5 @@ namespace Server.Models
         public string Password { get; set; }
         public List<UserToMessage> UserToMessages { get; set; }
         public List<UserToChat> UserToChats { get; set; } = new();
-
-        public string RelationsWithChats { get; set; } = "";
-        public string RelationsWithMessages { get; set; } = "";
-
-        [NotMapped] public const string Delimiter = ";";
-
-        [NotMapped]
-        public IEnumerable<Guid> MyChatIds => RelationsWithChats.Split(Delimiter, StringSplitOptions.RemoveEmptyEntries)
-            .Select(Guid.Parse);
-        [NotMapped]
-        public IEnumerable<Guid> MyMessageIds => RelationsWithMessages.Split(Delimiter, StringSplitOptions.RemoveEmptyEntries)
-            .Select(Guid.Parse);
     }
 }

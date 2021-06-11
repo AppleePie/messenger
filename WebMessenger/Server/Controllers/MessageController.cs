@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -31,7 +30,7 @@ namespace Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromRoute] Guid chatId, [FromBody] ChatMessage message)
+        public async Task<IActionResult> CreateMessage([FromRoute] Guid chatId, [FromBody] ChatMessage message)
         {
             await chatHub.Clients.Group(message.Initiator.ToString()).ReceiveMessage(message);
             await chatHub.Clients.Group(message.Interlocutor.ToString()).ReceiveMessage(message);

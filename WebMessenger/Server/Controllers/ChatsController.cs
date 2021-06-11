@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -43,26 +42,12 @@ namespace Server.Controllers
             await repository.InsertAsync(chat1);
             await repository.InsertAsync(chat2);
 
-            initiator.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
-            interlocutor.RelationsWithChats += $"{chat.Id}{Models.User.Delimiter}";
-
-            await repository.UpdateAsync(initiator);
-            await repository.UpdateAsync(interlocutor);
-
             return Ok(chat.Id);
         }
 
         [HttpDelete("{chatId:guid}")]
         public async Task<IActionResult> DeleteChat([FromRoute] Guid chatId)
         {
-            var chat = await repository.FindByIdAsync<Chat>(chatId);
-            foreach (var user in chat.UserToChats.Select(uc => uc.User))
-            {
-                var idStart = user.RelationsWithChats.IndexOf(chatId.ToString(), StringComparison.Ordinal);
-                user.RelationsWithChats = user.RelationsWithChats.Remove(idStart, chatId.ToString().Length);
-                await repository.UpdateAsync(user);
-            }
-            
             await repository.DeleteAsync<Chat>(chatId);
             return NoContent();
         }
