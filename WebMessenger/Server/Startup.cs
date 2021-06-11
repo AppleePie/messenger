@@ -1,16 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using Server.DatabaseWorkers;
 using Server.Models;
 
@@ -37,7 +34,7 @@ namespace Server
                     .AllowCredentials();
             }));
             services.AddControllers().AddNewtonsoftJson().AddNewtonsoftJson(options =>
-                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             );
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Server", Version = "v1"}); });
             services.AddSingleton<DatabaseContext>();
@@ -72,7 +69,7 @@ namespace Server
                             )
                         ); 
                 },
-                Array.Empty<System.Reflection.Assembly>()
+                Array.Empty<Assembly>()
             );
         }
 

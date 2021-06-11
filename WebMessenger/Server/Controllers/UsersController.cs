@@ -107,8 +107,6 @@ namespace Server.Controllers
             {
                 foreach (var interlocutor in chat.UserToChats.Select(uc => uc.User).Where(u => u.Id != id))
                 {
-                    var idStart = interlocutor.RelationsWithChats.IndexOf(chat.Id.ToString(), StringComparison.Ordinal);
-                    interlocutor.RelationsWithChats = interlocutor.RelationsWithChats.Remove(idStart, chat.Id.ToString().Length);
                     removingIds.Add(chat.Id);
                     await repository.UpdateAsync(interlocutor);
                 }
